@@ -76,12 +76,12 @@ async function scanDirectory(dirPath, publicPath) {
 
 
 export default defineEventHandler(async (event) => {
-    const uploadsDir = path.join(process.cwd(), '.', 'public', 'uploads');
+    const uploadsDir = path.join(process.cwd(), '.', 'public', 'mydrive');
 
     try {
         await fs.access(uploadsDir);
         
-        const { children, size } = await scanDirectory(uploadsDir, '/uploads');
+        const { children, size } = await scanDirectory(uploadsDir, '/mydrive');
 
         // Example Quota: 100 GB in bytes. In a real app, this might come from a config file or database.
         const quota = 100 * 1024 * 1024 * 1024; 
