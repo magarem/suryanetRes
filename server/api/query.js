@@ -1,8 +1,8 @@
 // server/api/query.js
-import Database from 'better-sqlite3';
 import { getDatabase } from '~/server/utils/db';
 
 export default defineEventHandler(async (event) => {
+  const { user } = await requireUserSession(event)
   const body = await readBody(event);
   const sql = body.sql;
 
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
     // }
 
     // const domain = authHeader.split(" ")[1]; // extract domain from header
-    const { domain } = getRouterParams(event);
+    const domain = user.domain;
     const db = getDatabase(domain);
     const result = db.prepare(sql).all();
     console.log('SQL query result:', result);

@@ -1,5 +1,6 @@
 <template>
   <div class="flex h-screen bg-gray-900 text-gray-100 font-sans">
+    
     <!-- Sidebar -->
     <Sidebar :is-open="isSidebarOpen" />
 
@@ -10,7 +11,7 @@
 
       <!-- Page Content -->
       <main class="flex-1 p-6 overflow-y-auto">
-        <!-- NuxtPage will render the content of your pages -->
+        <!-- THE ONLY CHANGE IS HERE -->
         <slot />
       </main>
     </div>
@@ -18,26 +19,24 @@
 </template>
 
 <script setup>
+// The script block remains the same
 import { ref } from 'vue';
 import Sidebar from '~/components/Sidebar.vue';
 import Topbar from '~/components/Topbar.vue';
 
-// Reactive state for the sidebar's visibility
 const isSidebarOpen = ref(true);
 
-// Function to toggle the sidebar state
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value;
 };
 </script>
 
 <style>
-/* Basic styles to ensure a clean look */
+/* The style block remains the same */
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
 }
-/* Smooth transition for margin-left on the main content */
 .transition-all {
   transition-property: all;
 }

@@ -67,6 +67,7 @@ definePageMeta({
 
 const { loggedIn, user, fetch: refreshSession } = useUserSession()
 const credentials = reactive({
+  domain: 'novagokula',
   email: '',
   password: '',
 })

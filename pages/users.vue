@@ -193,18 +193,15 @@
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: ['authenticated'],
+})
 import { ref, onMounted } from "vue";
 import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "@primevue/core/api";
 import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
-import Textarea from "primevue/textarea";
-import Select from "primevue/select";
-import RadioButton from "primevue/radiobutton";
-import Rating from "primevue/rating";
-import Tag from "primevue/tag";
-import CustomSelect from "~/components/CustomSelect.vue";
 import CustomCheckbox from "~/components/CustomCheckbox.vue";
+const { user, clear: clearSession } = useUserSession()
 
 const toast = useToast();
 const dt = ref();
@@ -219,9 +216,11 @@ const filters = ref({
 });
 const submitted = ref(false);
 const route = useRoute();
-const domain = route.params.domain;
+const domain = user.domain;
+
+
 let data_roles = ref([]);
-const dataRoles = await executeQuery(domain, "SELECT id, name FROM roles");
+const dataRoles = await executeQuery("SELECT id, name FROM roles");
 data_roles.value = dataRoles?.map(x => ({key: x.id, value: x.name}));
 console.log("Fetched dataRoles----+:", data_roles.value);
 
@@ -261,8 +260,8 @@ const visibleColumns = computed(() => {
 
 const columns = ref([
   {
-    field: "nome",
-    header: "Nome",
+    field: "username",
+    header: "Username",
     sortable: true,
     style: { "min-width": "10rem" },
     editTemplate: InputText
@@ -327,10 +326,10 @@ function formatValue(value) {
   return value 
 }
 
-async function executeQuery(domain, sql) {
+async function executeQuery(sql) {
   // Added domain
   try {
-    const response = await fetch(`/api/${domain}/query`, {
+    const response = await fetch(`/api/query`, {
       // Changed URL
       method: "POST",
       headers: {
@@ -346,10 +345,10 @@ async function executeQuery(domain, sql) {
   }
 }
 
-async function executeQueryRun(domain, sql) {
+async function executeQueryRun(sql) {
   // Added domain
   try {
-    const response = await fetch(`/api/${domain}/queryRun`, {
+    const response = await fetch(`/api/queryRun`, {
       // Changed URL
       method: "POST",
       headers: {
@@ -373,10 +372,10 @@ async function fetchData() {
   // data_roles.value = dataRoles.name;
   // console.log("Fetched data_roles:", data_roles);
 
-  const data = await executeQuery(domain, `
+  const data = await executeQuery( `
   SELECT
       u.id,
-      u.nome,
+      u.username,
       u.email,
       u.telefone,
       u.password,
@@ -386,7 +385,7 @@ async function fetchData() {
     FROM users u
     LEFT JOIN user_roles ur ON u.id = ur.user_id
     LEFT JOIN roles r ON ur.role_id = r.id
-    GROUP BY u.id, u.nome, u.email, u.telefone, u.password, u.status
+    GROUP BY u.id, u.username, u.email, u.telefone, u.password, u.status
   `);
 
   console.log("Fetched data:", data);
