@@ -22,7 +22,7 @@
     <!-- Navigation Links -->
     <nav class="flex-1 px-4 py-6 space-y-2">
       <!-- Loop through menu items -->
-      <div v-for="item in menuItems" :key="item.name">
+      <div v-for="item in visibleMenu" :key="item.name">
         
         <!-- Standard Menu Item -->
         <a v-if="!item.children" :href="item.href" class="flex items-center p-2 text-base font-normal rounded-lg hover:bg-gray-700" :class="route.path === item.href ? 'bg-gray-700 text-white' : ''">
@@ -82,11 +82,48 @@ import {
     ChevronDown 
 } from 'lucide-vue-next';
 
+function getVisibleMenuItems(masterMenu, allowedPages) {
+  // 1. For efficient lookup, create a Set of the allowed 'href' values.
+  // We normalize the href by removing any leading slashes to ensure consistent matching (e.g., '/profile' matches 'profile').
+  const allowedHrefs = new Set(allowedPages.map(page => page.href.replace(/^\//, '')));
+
+  // 2. Use Array.reduce to build the new, filtered menu array.
+  return masterMenu.reduce((acc, item) => {
+    // 3. Handle items with children (e.g., 'Extra Pages')
+    if (item.children && item.children.length > 0) {
+      // Filter the children recursively. A child is kept if its href is in the allowed set.
+      const visibleChildren = item.children.filter(child => 
+        allowedHrefs.has(child.href.replace(/^\//, ''))
+      );
+
+      // If there are any visible children, add the parent item along with ONLY its visible children to the result.
+      if (visibleChildren.length > 0) {
+        acc.push({ ...item, children: visibleChildren });
+      }
+    } 
+    // 4. Handle standard menu items (without children)
+    else {
+      // Keep the item if its href is in the allowed set.
+      if (allowedHrefs.has(item.href.replace(/^\//, ''))) {
+        acc.push(item);
+      }
+    }
+    
+    // Return the accumulator for the next iteration.
+    return acc;
+  }, []);
+}
+
+
 // Get the current route to highlight the active link
 const route = useRoute();
-
+const visibleMenu = ref([]);
 // Define props that the component accepts
-defineProps({
+const a = defineProps({
+  userAllowedPages: {
+    type: Array,
+    required: true,
+  }, 
   isOpen: {
     type: Boolean,
     required: true,
@@ -95,25 +132,27 @@ defineProps({
 
 // --- Data-driven menu structure ---
 // Using shallowRef for performance, as the components within are static.
-const menuItems = shallowRef([
+const menuItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Users', href: '#', icon: Users },
     { name: 'Messages', href: '/messages', icon: Mail },
     { name: 'Fidelis', href: '/messages2', icon: Mail },
     { name: 'Reports', href: '/reports', icon: FileText },
     { name: 'Profile', href: '/profile', icon: UserCircle },
-    { 
-        name: 'Extra Pages', 
+    { name: 'Arquivos', href: '/filemanager', icon: UserCircle },
+    { name: 'Controle de acesso',
         icon: FileStack,
         children: [
-            { name: 'Authentication', href: '#' },
+            { name: 'Users', href: '/auth/users', icon: Users },
             { name: 'Pricing', href: '#' },
             { name: 'Invoice', href: '#' },
         ]
     },
     { name: 'Analytics', href: '#', icon: BarChart3 },
     // { name: 'Settings', href: '#', icon: Settings },
-]);
+];
+
+
+visibleMenu.value = getVisibleMenuItems(menuItems, a.userAllowedPages);
 
 // Reactive state for the collapsible menus
 const openMenus = ref({});

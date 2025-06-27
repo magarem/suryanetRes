@@ -106,6 +106,11 @@ import { Menu, Search, Bell, UserPlus, Server, UserCircle, Settings, LogOut } fr
 defineEmits(['toggleSidebar']);
 
 const { user, clear: clearSession } = useUserSession()
+// 2. Create a computed property for the user's ID.
+// This is reactive and safely handles cases where the user is initially null.
+const userId = computed(() => user.value?.id);
+
+console.log('userId', userId.value);
 
 async function logout() {
   await clearSession()

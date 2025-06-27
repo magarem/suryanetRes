@@ -21,6 +21,17 @@
       <!-- Login Form -->
       <form class="space-y-6" @submit.prevent="login">
         <div>
+          <label for="domain" class="block text-sm font-medium text-gray-300 mb-1">Organização</label>
+          <input v-model="credentials.domain"
+            type="text" 
+            name="domain" 
+            id="domain" 
+            class="w-full bg-gray-700 py-1 px-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 border border-transparent" 
+            placeholder=""
+            required
+          >
+        </div>
+        <div>
           <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email ou nome do usuário</label>
           <input v-model="credentials.email"
             type="text" 
@@ -67,7 +78,7 @@ definePageMeta({
 
 const { loggedIn, user, fetch: refreshSession } = useUserSession()
 const credentials = reactive({
-  domain: 'novagokula',
+  domain: '',
   email: '',
   password: '',
 })

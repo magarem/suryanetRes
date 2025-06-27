@@ -2,7 +2,7 @@
   <div class="flex h-screen bg-gray-900 text-gray-100 font-sans">
     
     <!-- Sidebar -->
-    <Sidebar :is-open="isSidebarOpen" />
+    <Sidebar :userAllowedPages="userAllowedPages" :is-open="isSidebarOpen" />
 
     <!-- Main Content -->
     <div class="flex-1 flex flex-col transition-all duration-300 ease-in-out" :class="isSidebarOpen ? 'ml-64' : 'ml-20'">
@@ -25,10 +25,17 @@ import Sidebar from '~/components/Sidebar.vue';
 import Topbar from '~/components/Topbar.vue';
 
 const isSidebarOpen = ref(true);
-
+const { user, clear: clearSession } = useUserSession()
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value;
 };
+
+const { data: userAllowedPages, pending, error } = await useFetch(`/api/navigation?userId=${user.value.id}`, {
+  // useFetch is a convenient wrapper around useAsyncData
+  // It automatically generates a key based on the URL
+});
+
+
 </script>
 
 <style>
