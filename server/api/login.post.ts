@@ -34,13 +34,13 @@ export default defineEventHandler(async (event) => {
 
     // --- NEW: Fetch user roles ---
     const rolesStmt = db.prepare(`
-        SELECT r.name 
+        SELECT r.id 
         FROM user_roles ur
         JOIN roles r ON ur.role_id = r.id
         WHERE ur.user_id = ?
     `);
     const userRolesResult = rolesStmt.all(user.id) as { name: string }[];
-    const roles = userRolesResult.map(row => row.name);
+    const roles = userRolesResult.map(row => row.id);
     // --- End of new logic ---
 
     db.close();

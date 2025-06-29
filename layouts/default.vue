@@ -30,6 +30,8 @@ const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value;
 };
 
+console.log('user', user.value);
+
 const { data: userAllowedPages, pending, error } = await useFetch(`/api/navigation?userId=${user.value.id}`, {
   // useFetch is a convenient wrapper around useAsyncData
   // It automatically generates a key based on the URL
