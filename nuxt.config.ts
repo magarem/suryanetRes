@@ -17,13 +17,18 @@ export default defineNuxtConfig({
   css: [
     '~/assets/css/main.css',
     '~/assets/css/tailwind.css',
+    'primeicons/primeicons.css' // <-- Adicione esta linha!
     ],
+    // Adicione esta seção
+  build: {
+    transpile: ['primevue']
+  },
   vite: {
     plugins: [
       tailwindcss(),
     ],
   },
-  modules: ['@nuxt/scripts', 'nuxt-auth-utils', '@primevue/nuxt-module', '@vueuse/nuxt', '@nuxtjs/tailwindcss'],
+  modules: [ '@nuxt/scripts', 'nuxt-auth-utils', '@primevue/nuxt-module', '@vueuse/nuxt', '@nuxtjs/tailwindcss'],
   postcss: {
     plugins: {
       '@tailwindcss/postcss': {},
@@ -35,6 +40,8 @@ export default defineNuxtConfig({
   ],
    primevue: {
       options: {
+        ripple: true,
+        inputVariant: 'filled',
           theme: {
               preset: Aura,
               options: {

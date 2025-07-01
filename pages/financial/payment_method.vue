@@ -1,17 +1,17 @@
 <template>
-  <!-- <div class="container mx-auto"> -->
-    <div class="card w-[90%]">
+  <div>
+    <div class="card">
       <Toolbar class="mb-1">
         <template #start>
           <Button
-            label="New"
+            label="Novo"
             icon="pi pi-plus"
             severity="secondary"
             class="mr-2"
             @click="openNew"
           />
           <Button
-            label="Delete"
+            label="Excluir"
             icon="pi pi-trash"
             severity="secondary"
             @click="confirmDeleteSelected"
@@ -21,7 +21,7 @@
 
         <template #end>
           <Button
-            label="Export"
+            label="Exportar"
             icon="pi pi-upload"
             severity="secondary"
             @click="exportCSV($event)"
@@ -29,7 +29,8 @@
         </template>
       </Toolbar>
       <DataTable
-       :pt="myTableStyles"  tableStyle="min-width: 50rem"
+        scrollable
+        scrollHeight="360px"
         ref="dt"
         v-model:selection="selectedItems"
         :value="items"
@@ -71,21 +72,11 @@
           :style="col.style"
         >
           <template #body="slotProps">
-            <!-- {{ formatValue(slotProps.data[col.field]) }} -->
             {{ slotProps.data[col.field] }}
           </template>
-
-          <!-- <template v-if="col.bodyTemplate" #body="slotProps">
-            <component
-              :is="col.bodyTemplate"
-              :slotProps="slotProps"
-              :formatCurrency="formatCurrency"
-              :getStatusLabel="getStatusLabel"
-            />
-          </template> -->
         </Column>
 
-        <Column frozen :exportable="false" style="min-width: 12rem">
+        <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"
@@ -189,19 +180,15 @@
         />
       </template>
     </Dialog>
-  <!-- </div> -->
+  </div>
 </template>
 
 <script setup>
-definePageMeta({
-  middleware: ['authenticated'],
-})
-import { ref, onMounted } from "vue";
 import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "@primevue/core/api";
 import InputText from "primevue/inputtext";
 import CustomCheckbox from "~/components/CustomCheckbox.vue";
-const { user, clear: clearSession } = useUserSession()
+import { executeQuery, executeQueryRun } from "~/utils/db"; // Adjust the import path as necessary
 
 const toast = useToast();
 const dt = ref();
@@ -216,43 +203,6 @@ const filters = ref({
 });
 const submitted = ref(false);
 const route = useRoute();
-const domain = user.domain;
-
-
-let data_roles = ref([]);
-const dataRoles = await executeQuery("SELECT id, name FROM roles");
-data_roles.value = dataRoles?.map(x => ({key: x.id, value: x.name}));
-console.log("Fetched dataRoles----+:", data_roles.value);
-
-
-// Crie o objeto de estilo Pass Through (PT)
-const myTableStyles = {
-    header: { class: 'bg-gray-800 text-gray-100 p-4 border-b border-gray-700' },
-    table: { class: 'w-full' },
-    thead: { class: 'bg-gray-800' },
-    tbody: { class: 'bg-gray-900' },
-    row: ({ props }) => ({
-        class: [
-            props.frozenRow ? 'bg-gray-900' : 'text-gray-200 hover:bg-gray-800/50', // Efeito hover nas linhas
-            { 'bg-blue-900/50 text-blue-200': props.selected } // Estilo para linha selecionada
-        ]
-    }),
-    column: {
-        headercell: { class: 'text-left p-4 font-bold border-b border-gray-700' },
-        bodycell: { class: 'p-4 border-b border-gray-700' }
-    },
-    paginator: {
-        root: { class: 'bg-gray-800 text-gray-200 flex items-center justify-center flex-wrap p-4 border-t border-gray-700' },
-        // Você pode customizar os botões, dropdown, etc., aqui se precisar
-        pagebutton: ({ props }) => ({
-            class: [
-                'rounded-full w-10 h-10 mx-1 transition-colors duration-200',
-                { 'bg-blue-500 text-white': props.active } // Botão da página ativa
-            ]
-        })
-    }
-};
-
 
 const visibleColumns = computed(() => {
   return columns.value.filter(col => !col.hidden);
@@ -260,55 +210,17 @@ const visibleColumns = computed(() => {
 
 const columns = ref([
   {
-    field: "username",
-    header: "Username",
+    field: "name",
+    header: "Nome",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "16rem" },
     editTemplate: InputText
   },
   {
-    field: "email",
-    header: "Email",
+    field: "description",
+    header: "Descrição",
     sortable: true,
-    style: { "min-width": "10rem" },
-    editTemplate: InputText
-  },
-  {
-    field: "phone",
-    header: "Telefone",
-    sortable: true,
-    style: { "min-width": "10rem" },
-    editTemplate: InputText
-  },
-  {
-    field: "password",
-    header: "Senha",
-    sortable: true,
-    style: { "min-width": "5rem" },
-    editTemplate: InputText
-  },
-  {
-    field: "roles_names", // Coluna para exibição na tabela
-    header: "Roles",
-    sortable: true,
-    style: { "min-width": "5rem" },
-    bodyTemplate: (slotProps) => slotProps.data.roles_names, // Exibe os nomes concatenados
-    editTemplate: null, // Não usar este campo para editar
-  },
-  {
-    field: "roles_ids", // Coluna para edição
-    header: "Roles", // Pode manter o mesmo header ou mudar para "Selecionar Roles"
-    sortable: true,
-    style: { "min-width": "10rem" },
-    editTemplate: CustomCheckbox, // Usar o CustomCheckbox para editar
-    options: data_roles.value, // Passar as opções para o CustomCheckbox
-    hidden: true, // Ocultar esta coluna na tabela (opcional, pode remover se não quiser)
-  },
-  {
-    field: "status",
-    header: "Status",
-    sortable: true,
-    style: { "min-width": "2rem" },
+    style: { "min-width": "16rem" },
     editTemplate: InputText
   }
 ]);
@@ -319,78 +231,11 @@ onMounted(async () => {
 });
 
 
-function formatValue(value) {
-  if (typeof value == 'object') {
-    return value.join(', '); // Format as JSON string
-  }
-  return value 
-}
 
-async function executeQuery(sql) {
-  // Added domain
-  try {
-    const response = await fetch(`/api/query`, {
-      // Changed URL
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ sql })
-    });
-    // Handle errors like before
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    // Handle error
-  }
-}
-
-async function executeQueryRun(sql) {
-  // Added domain
-  try {
-    const response = await fetch(`/api/queryRun`, {
-      // Changed URL
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ sql })
-    });
-    // Handle errors like before
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    // Handle error
-  }
-}
 
 async function fetchData() {
-  // const route = useRoute();
-  // const domain = route.params.domain;
-  
-  console.log("Fetched dataRoles:", dataRoles.map(x=> x.name));
-  // data_roles.value = dataRoles.name;
-  // console.log("Fetched data_roles:", data_roles);
-
-  const data = await executeQuery( `
-  SELECT
-      u.id,
-      u.username,
-      u.name,
-      u.email,
-      u.phone,
-      u.password,
-      u.status,
-      GROUP_CONCAT(r.name, ', ') AS roles_names,
-      GROUP_CONCAT(ur.role_id) AS roles_ids
-    FROM users u
-    LEFT JOIN user_roles ur ON u.id = ur.user_id
-    LEFT JOIN roles r ON ur.role_id = r.id
-    GROUP BY u.id, u.username, u.email, u.phone, u.password, u.status
-  `);
-
+  const data = await executeQuery(`SELECT id, name, description from financial_payment_methods`);
   console.log("Fetched data:", data);
-
   return data;
 }
 
@@ -409,38 +254,30 @@ async function saveItem() {
   submitted.value = true;
 
   let isValid = true;
-  for (const col of columns.value) {
-    if (col.editTemplate && !item.value[col.field] && col.field !== 'roles') {
-      isValid = false;
-      break;
-    }
-  }
+  // for (const col of columns.value) {
+  //   if (col.editTemplate && !item.value[col.field] && col.field !== 'roles') {
+  //     isValid = false;
+  //     break;
+  //   }
+  // }
 
   if (isValid) {
     try {
-      const userData = {
-        id: item.value.id,
-        name: item.value.name,
-        username: item.value.username,
-        email: item.value.email,
-        phone: item.value.phone,
-        password: item.value.password,
-        status: item.value.status,
-      };
+      const userData = {...item.value};
 
       // 1. Salvar/atualizar os dados básicos do usuário na tabela 'users'
       const userResponse = await $fetch(`/api/upsert`, {
         method: "POST",
         body: {
-          table: "users",
+          table: "financial_payment_methods",
           data: userData,
           condition: item.value.id ? `id = ${item.value.id}` : null,
         },
       });
 
-      let userId;
+      let _id;
       if (item.value.id) {
-        userId = item.value.id;
+        _id = item.value.id;
         if (!userResponse?.message && userResponse !== null) {
           toast.add({
             severity: "error",
@@ -452,8 +289,8 @@ async function saveItem() {
         }
       } else {
         if (userResponse?.result?.lastInsertRowid) {
-          userId = userResponse?.result?.lastInsertRowid;
-          userData.id = userId; // Adicionar o ID ao userData para inserção
+          _id = userResponse?.result?.lastInsertRowid;
+          userData.id = _id; // Adicionar o ID ao userData para inserção
         } else {
           toast.add({
             severity: "error",
@@ -464,20 +301,7 @@ async function saveItem() {
           return;
         }
       }
-
-      const selectedRoleIds = item.value.roles_ids || [];
-
-      // 2. Atualizar a tabela 'user_roles'
-      if (userId) {
-        await executeQueryRun(`DELETE FROM user_roles WHERE user_id = ${userId}`);
-
-        if (selectedRoleIds.length > 0) {
-          const insertPromises = selectedRoleIds.map((roleId) =>
-            executeQueryRun(`INSERT INTO user_roles (user_id, role_id) VALUES (${userId}, ${roleId})`)
-          );
-          await Promise.all(insertPromises);
-        }
-      }
+   
 
       toast.add({
         severity: "success",
@@ -494,11 +318,11 @@ async function saveItem() {
         // Atualizar registro existente
         const index = items.value.findIndex((val) => val.id === item.value.id);
         if (index !== -1) {
-          items.value[index] = { ...userData, roles_ids: selectedRoleIds, roles_names: item.value.roles_names }; // Use userData para atualizar
+          items.value[index] = { ...userData}; // Use userData para atualizar
         }
       } else {
         // Adicionar novo registro
-        items.value.push({ ...userData, roles_ids: selectedRoleIds, roles_names: item.value.roles_names }); // Use userData para inserir
+        items.value.push({ ...userData}); // Use userData para inserir
       }
 
       const data = await fetchData();
@@ -516,15 +340,6 @@ async function saveItem() {
 }
 function editItem(selectedItem) {
   item.value = { ...selectedItem };
-  // Certifique-se de que roles_ids esteja presente, mesmo que seja um array vazio
-  if (!item.value.roles_ids) {
-    item.value.roles_ids = [];
-  } else {
-    // Se roles_ids for uma string, converta para array (se necessário)
-    if (typeof item.value.roles_ids === 'string') {
-      item.value.roles_ids = item.value.roles_ids.split(',').map(Number); // Converter string para array de números
-    }
-  }
   itemDialog.value = true;
 }
 
@@ -533,13 +348,24 @@ function confirmDeleteItem(selectedItem) {
   deleteItemDialog.value = true;
 }
 
-async function deleteItem() {
+async function deleteItem(regs_to_delete) {
+  console.log(regs_to_delete)
+  let flg_condition = ""
   try {
+
+    if (Array.isArray(regs_to_delete)) {
+      const aux_regs_to_delete = regs_to_delete.join()
+      console.log(aux_regs_to_delete)
+       flg_condition = `id in (${aux_regs_to_delete})`
+    } else {
+       flg_condition = `id = ${item.value.id}`
+    }
+
     const response = await $fetch(`/api/delete`, {
       method: "POST",
       body: {
-        table: "users", // Substitua pelo nome da sua tabela
-        condition: `id = ${item.value.id}`
+        table: "financial_payment_methods", // Substitua pelo nome da sua tabela
+        condition: flg_condition
       }
     });
 
@@ -605,7 +431,10 @@ function confirmDeleteSelected() {
 function deleteSelectedItems() {
   items.value = items.value.filter(val => !selectedItems.value.includes(val));
   deleteItemsDialog.value = false;
-  selectedItems.value = null;
+  //Delete data in db
+  deleteItem(selectedItems.value.map(x=>x.id))
+
+   selectedItems.value = null;
   toast.add({
     severity: "success",
     summary: "Successful",

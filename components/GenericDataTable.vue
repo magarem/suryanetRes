@@ -67,7 +67,7 @@
 
       <Column headerStyle="min-width:10rem;">
         <template #body="slotProps">
-          <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editItem(slotProps.data)" />
+          <Button icon="pi pi-pencil" class="bg-amber-950 p-button-rounded p-button-success mr-2" @click="editItem(slotProps.data)" />
           <Button icon="pi pi-trash" class="p-button-rounded p-button-warning" @click="confirmDeleteItem(slotProps.data)" />
         </template>
       </Column>
@@ -235,6 +235,18 @@ const displayField = computed(() => {
 // --- METHODS ---
 onMounted(async () => {
   items.value = await props.fetchData();
+});
+
+
+// 1. CRIE UMA FUNÇÃO PARA RECARREGAR OS DADOS
+async function refresh() {
+  console.log('Refreshing data...');
+  items.value = await props.fetchData();
+}
+
+// 2. EXPONHA ESSA FUNÇÃO PARA O PAI
+defineExpose({
+  refresh
 });
 
 const getNestedValue = (obj, path) => {

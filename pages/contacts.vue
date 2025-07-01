@@ -1,6 +1,6 @@
 <template>
-  <!-- <div class="container mx-auto"> -->
-    <div class="card w-[90%]">
+  <div>
+    <div class="card">
       <Toolbar class="mb-1">
         <template #start>
           <Button
@@ -29,7 +29,6 @@
         </template>
       </Toolbar>
       <DataTable
-       :pt="myTableStyles"  tableStyle="min-width: 50rem"
         ref="dt"
         v-model:selection="selectedItems"
         :value="items"
@@ -85,7 +84,7 @@
           </template> -->
         </Column>
 
-        <Column frozen :exportable="false" style="min-width: 12rem">
+        <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"
@@ -109,7 +108,7 @@
     <Dialog
       v-model:visible="itemDialog"
       :style="{ width: '450px' }"
-      header="Item Details"
+      header="Registro"
       :modal="true"
     >
       <div class="flex flex-col gap-6">
@@ -118,7 +117,6 @@
             <label :for="col.field" class="block font-bold mb-3">{{
               col.header
             }}</label>
-            
             <component
               :is="col.editTemplate"
               v-model="item[col.field]"
@@ -126,8 +124,11 @@
               :options="col.options"
               :submitted="submitted"
               :field="col.field"
+              :optionLabel="col.optionLabel"
+              :optionValue="col.optionValue"
+              class="w-full border rounded"
             />
-            <small v-if="submitted && !item[col.field]" class="text-red-500"
+            <small v-if="submitted" class="text-red-500"
               >{{ col.header }} is required.</small
             >
           </div>
@@ -189,7 +190,7 @@
         />
       </template>
     </Dialog>
-  <!-- </div> -->
+  </div>
 </template>
 
 <script setup>
@@ -200,7 +201,8 @@ import { ref, onMounted } from "vue";
 import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "@primevue/core/api";
 import InputText from "primevue/inputtext";
-import CustomCheckbox from "~/components/CustomCheckbox.vue";
+import { executeQuery, executeQueryRun } from "~/utils/db"; // Adjust the import path as necessary
+import Select from 'primevue/select';
 const { user, clear: clearSession } = useUserSession()
 
 const toast = useToast();
@@ -216,42 +218,6 @@ const filters = ref({
 });
 const submitted = ref(false);
 const route = useRoute();
-const domain = user.domain;
-
-
-let data_roles = ref([]);
-const dataRoles = await executeQuery("SELECT id, name FROM roles");
-data_roles.value = dataRoles?.map(x => ({key: x.id, value: x.name}));
-console.log("Fetched dataRoles----+:", data_roles.value);
-
-
-// Crie o objeto de estilo Pass Through (PT)
-const myTableStyles = {
-    header: { class: 'bg-gray-800 text-gray-100 p-4 border-b border-gray-700' },
-    table: { class: 'w-full' },
-    thead: { class: 'bg-gray-800' },
-    tbody: { class: 'bg-gray-900' },
-    row: ({ props }) => ({
-        class: [
-            props.frozenRow ? 'bg-gray-900' : 'text-gray-200 hover:bg-gray-800/50', // Efeito hover nas linhas
-            { 'bg-blue-900/50 text-blue-200': props.selected } // Estilo para linha selecionada
-        ]
-    }),
-    column: {
-        headercell: { class: 'text-left p-4 font-bold border-b border-gray-700' },
-        bodycell: { class: 'p-4 border-b border-gray-700' }
-    },
-    paginator: {
-        root: { class: 'bg-gray-800 text-gray-200 flex items-center justify-center flex-wrap p-4 border-t border-gray-700' },
-        // Você pode customizar os botões, dropdown, etc., aqui se precisar
-        pagebutton: ({ props }) => ({
-            class: [
-                'rounded-full w-10 h-10 mx-1 transition-colors duration-200',
-                { 'bg-blue-500 text-white': props.active } // Botão da página ativa
-            ]
-        })
-    }
-};
 
 
 const visibleColumns = computed(() => {
@@ -260,55 +226,65 @@ const visibleColumns = computed(() => {
 
 const columns = ref([
   {
-    field: "username",
-    header: "Username",
+    field: "name",
+    header: "Nome",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "8rem" },
+    editTemplate: InputText
+  },
+  {
+    field: "type",
+    header: "Tipo",
+    sortable: true,
+    style: { "min-width": "5rem" },
+    editTemplate: Select,
+    options: [{key:'Física', value:'Física'}, {key:'Jurídica', value:'Jurídica'}],
+    optionLabel: "value",
+    optionValue: "key"
+  },
+  {
+    field: "doc",
+    header: "Documento",
+    sortable: true,
+    style: { "min-width": "5rem" },
     editTemplate: InputText
   },
   {
     field: "email",
     header: "Email",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "5rem" },
     editTemplate: InputText
   },
   {
-    field: "phone",
-    header: "Telefone",
-    sortable: true,
-    style: { "min-width": "10rem" },
-    editTemplate: InputText
-  },
-  {
-    field: "password",
-    header: "Senha",
+    field: "fone1",
+    header: "Telefone 1",
     sortable: true,
     style: { "min-width": "5rem" },
     editTemplate: InputText
   },
   {
-    field: "roles_names", // Coluna para exibição na tabela
-    header: "Roles",
+    field: "fone2",
+    header: "Telefone 2",
     sortable: true,
     style: { "min-width": "5rem" },
-    bodyTemplate: (slotProps) => slotProps.data.roles_names, // Exibe os nomes concatenados
-    editTemplate: null, // Não usar este campo para editar
+    editTemplate: InputText,
+    hidden: true, // Hidden by default
   },
   {
-    field: "roles_ids", // Coluna para edição
-    header: "Roles", // Pode manter o mesmo header ou mudar para "Selecionar Roles"
+    field: "address",
+    header: "Endereço",
     sortable: true,
-    style: { "min-width": "10rem" },
-    editTemplate: CustomCheckbox, // Usar o CustomCheckbox para editar
-    options: data_roles.value, // Passar as opções para o CustomCheckbox
-    hidden: true, // Ocultar esta coluna na tabela (opcional, pode remover se não quiser)
+    style: { "min-width": "5rem" },
+    hidden: true, // Hidden by default
+    editTemplate: InputText
   },
   {
-    field: "status",
-    header: "Status",
+    field: "obs",
+    header: "Observações",
     sortable: true,
-    style: { "min-width": "2rem" },
+    style: { "min-width": "5rem" },
+    hidden: true, // Hidden by default
     editTemplate: InputText
   }
 ]);
@@ -326,68 +302,10 @@ function formatValue(value) {
   return value 
 }
 
-async function executeQuery(sql) {
-  // Added domain
-  try {
-    const response = await fetch(`/api/query`, {
-      // Changed URL
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ sql })
-    });
-    // Handle errors like before
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    // Handle error
-  }
-}
-
-async function executeQueryRun(sql) {
-  // Added domain
-  try {
-    const response = await fetch(`/api/queryRun`, {
-      // Changed URL
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ sql })
-    });
-    // Handle errors like before
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    // Handle error
-  }
-}
 
 async function fetchData() {
-  // const route = useRoute();
-  // const domain = route.params.domain;
-  
-  console.log("Fetched dataRoles:", dataRoles.map(x=> x.name));
-  // data_roles.value = dataRoles.name;
-  // console.log("Fetched data_roles:", data_roles);
-
-  const data = await executeQuery( `
-  SELECT
-      u.id,
-      u.username,
-      u.name,
-      u.email,
-      u.phone,
-      u.password,
-      u.status,
-      GROUP_CONCAT(r.name, ', ') AS roles_names,
-      GROUP_CONCAT(ur.role_id) AS roles_ids
-    FROM users u
-    LEFT JOIN user_roles ur ON u.id = ur.user_id
-    LEFT JOIN roles r ON ur.role_id = r.id
-    GROUP BY u.id, u.username, u.email, u.phone, u.password, u.status
-  `);
+  // const route = useRoute(
+  const data = await executeQuery(`SELECT * from contacts`);
 
   console.log("Fetched data:", data);
 
@@ -409,30 +327,23 @@ async function saveItem() {
   submitted.value = true;
 
   let isValid = true;
-  for (const col of columns.value) {
-    if (col.editTemplate && !item.value[col.field] && col.field !== 'roles') {
-      isValid = false;
-      break;
-    }
-  }
+//   for (const col of columns.value) {
+//     if (col.editTemplate && !item.value[col.field] && col.field !== 'roles') {
+//       isValid = false;
+//       break;
+//     }
+//   }
 
   if (isValid) {
     try {
-      const userData = {
-        id: item.value.id,
-        name: item.value.name,
-        username: item.value.username,
-        email: item.value.email,
-        phone: item.value.phone,
-        password: item.value.password,
-        status: item.value.status,
-      };
+      const userData = {...item.value, user_id: user.value.id}
+       
 
       // 1. Salvar/atualizar os dados básicos do usuário na tabela 'users'
       const userResponse = await $fetch(`/api/upsert`, {
         method: "POST",
         body: {
-          table: "users",
+          table: "contacts", // Substitua pelo nome da sua tabela
           data: userData,
           condition: item.value.id ? `id = ${item.value.id}` : null,
         },
@@ -465,20 +376,6 @@ async function saveItem() {
         }
       }
 
-      const selectedRoleIds = item.value.roles_ids || [];
-
-      // 2. Atualizar a tabela 'user_roles'
-      if (userId) {
-        await executeQueryRun(`DELETE FROM user_roles WHERE user_id = ${userId}`);
-
-        if (selectedRoleIds.length > 0) {
-          const insertPromises = selectedRoleIds.map((roleId) =>
-            executeQueryRun(`INSERT INTO user_roles (user_id, role_id) VALUES (${userId}, ${roleId})`)
-          );
-          await Promise.all(insertPromises);
-        }
-      }
-
       toast.add({
         severity: "success",
         summary: "Successful",
@@ -494,11 +391,11 @@ async function saveItem() {
         // Atualizar registro existente
         const index = items.value.findIndex((val) => val.id === item.value.id);
         if (index !== -1) {
-          items.value[index] = { ...userData, roles_ids: selectedRoleIds, roles_names: item.value.roles_names }; // Use userData para atualizar
+          items.value[index] = { ...userData}; // Use userData para atualizar
         }
       } else {
         // Adicionar novo registro
-        items.value.push({ ...userData, roles_ids: selectedRoleIds, roles_names: item.value.roles_names }); // Use userData para inserir
+        items.value.push({ ...userData}); // Use userData para inserir
       }
 
       const data = await fetchData();
@@ -516,15 +413,6 @@ async function saveItem() {
 }
 function editItem(selectedItem) {
   item.value = { ...selectedItem };
-  // Certifique-se de que roles_ids esteja presente, mesmo que seja um array vazio
-  if (!item.value.roles_ids) {
-    item.value.roles_ids = [];
-  } else {
-    // Se roles_ids for uma string, converta para array (se necessário)
-    if (typeof item.value.roles_ids === 'string') {
-      item.value.roles_ids = item.value.roles_ids.split(',').map(Number); // Converter string para array de números
-    }
-  }
   itemDialog.value = true;
 }
 
@@ -538,7 +426,7 @@ async function deleteItem() {
     const response = await $fetch(`/api/delete`, {
       method: "POST",
       body: {
-        table: "users", // Substitua pelo nome da sua tabela
+        table: "contacts", // Substitua pelo nome da sua tabela
         condition: `id = ${item.value.id}`
       }
     });

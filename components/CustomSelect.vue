@@ -1,6 +1,6 @@
 // components/CustomSelect.vue
 <template>
-  <select
+  <Select
     v-model="selectedValue"
     @change="emitValue"
     :id="field"
@@ -9,7 +9,7 @@
     <option v-for="option in options" :key="option.key" :value="option.key">
       {{ option.value }}
     </option>
-  </select>
+  </Select>
 </template>
 
 <script setup>

@@ -134,17 +134,26 @@ const a = defineProps({
 // Using shallowRef for performance, as the components within are static.
 const menuItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Messages', href: '/messages', icon: Mail },
+    { name: 'Mensagens', href: '/messages', icon: Mail },
     { name: 'Fidelis', href: '/messages2', icon: Mail },
     { name: 'Reports', href: '/reports', icon: FileText },
-    { name: 'Profile', href: '/profile', icon: UserCircle },
     { name: 'Arquivos', href: '/filemanager', icon: UserCircle },
+    { name: 'Contatos', href: '/contacts', icon: Users },
+     { name: 'Financeiro',
+        icon: FileStack,
+        children: [
+            { name: 'Categorias', href: '/financial/category', icon: Users },
+            { name: 'Métodos de pagamento', href: '/financial/payment_method', icon: Users },
+            { name: 'Movimentos', href: '/financial/transactions', icon: Users },
+            { name: 'Relatórios', href: '/financial/reports', icon: Users },
+        ]
+    },
     { name: 'Controle de acesso',
         icon: FileStack,
         children: [
-            { name: 'Users', href: '/auth/users', icon: Users },
-            { name: 'Pricing', href: '#' },
-            { name: 'Invoice', href: '#' },
+            { name: 'Usuários', href: '/auth/users', icon: Users },
+            { name: 'Roles', href: '/auth/roles' },
+            { name: 'Páginas', href: '/auth/pages' },
         ]
     },
     { name: 'Analytics', href: '#', icon: BarChart3 },

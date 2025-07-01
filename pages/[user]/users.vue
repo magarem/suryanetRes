@@ -1,6 +1,6 @@
 <template>
-  <!-- <div class="container mx-auto"> -->
-    <div class="card w-[90%]">
+  <div>
+    <div class="card">
       <Toolbar class="mb-1">
         <template #start>
           <Button
@@ -29,7 +29,6 @@
         </template>
       </Toolbar>
       <DataTable
-       :pt="myTableStyles"  tableStyle="min-width: 50rem"
         ref="dt"
         v-model:selection="selectedItems"
         :value="items"
@@ -85,7 +84,7 @@
           </template> -->
         </Column>
 
-        <Column frozen :exportable="false" style="min-width: 12rem">
+        <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"
@@ -189,19 +188,22 @@
         />
       </template>
     </Dialog>
-  <!-- </div> -->
+  </div>
 </template>
 
 <script setup>
-definePageMeta({
-  middleware: ['authenticated'],
-})
 import { ref, onMounted } from "vue";
 import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "@primevue/core/api";
 import InputText from "primevue/inputtext";
+import InputNumber from "primevue/inputnumber";
+import Textarea from "primevue/textarea";
+import Select from "primevue/select";
+import RadioButton from "primevue/radiobutton";
+import Rating from "primevue/rating";
+import Tag from "primevue/tag";
+import CustomSelect from "~/components/CustomSelect.vue";
 import CustomCheckbox from "~/components/CustomCheckbox.vue";
-const { user, clear: clearSession } = useUserSession()
 
 const toast = useToast();
 const dt = ref();
@@ -216,42 +218,11 @@ const filters = ref({
 });
 const submitted = ref(false);
 const route = useRoute();
-const domain = user.domain;
-
-
+const domain = route.params.domain;
 let data_roles = ref([]);
-const dataRoles = await executeQuery("SELECT id, name FROM roles");
+const dataRoles = await executeQuery(domain, "SELECT id, name FROM roles");
 data_roles.value = dataRoles?.map(x => ({key: x.id, value: x.name}));
 console.log("Fetched dataRoles----+:", data_roles.value);
-
-
-// Crie o objeto de estilo Pass Through (PT)
-const myTableStyles = {
-    header: { class: 'bg-gray-800 text-gray-100 p-4 border-b border-gray-700' },
-    table: { class: 'w-full' },
-    thead: { class: 'bg-gray-800' },
-    tbody: { class: 'bg-gray-900' },
-    row: ({ props }) => ({
-        class: [
-            props.frozenRow ? 'bg-gray-900' : 'text-gray-200 hover:bg-gray-800/50', // Efeito hover nas linhas
-            { 'bg-blue-900/50 text-blue-200': props.selected } // Estilo para linha selecionada
-        ]
-    }),
-    column: {
-        headercell: { class: 'text-left p-4 font-bold border-b border-gray-700' },
-        bodycell: { class: 'p-4 border-b border-gray-700' }
-    },
-    paginator: {
-        root: { class: 'bg-gray-800 text-gray-200 flex items-center justify-center flex-wrap p-4 border-t border-gray-700' },
-        // Você pode customizar os botões, dropdown, etc., aqui se precisar
-        pagebutton: ({ props }) => ({
-            class: [
-                'rounded-full w-10 h-10 mx-1 transition-colors duration-200',
-                { 'bg-blue-500 text-white': props.active } // Botão da página ativa
-            ]
-        })
-    }
-};
 
 
 const visibleColumns = computed(() => {
@@ -260,38 +231,38 @@ const visibleColumns = computed(() => {
 
 const columns = ref([
   {
-    field: "username",
-    header: "Username",
+    field: "nome",
+    header: "Nome",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "16rem" },
     editTemplate: InputText
   },
   {
     field: "email",
     header: "Email",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "16rem" },
     editTemplate: InputText
   },
   {
-    field: "phone",
+    field: "telefone",
     header: "Telefone",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "12rem" },
     editTemplate: InputText
   },
   {
     field: "password",
     header: "Senha",
     sortable: true,
-    style: { "min-width": "5rem" },
+    style: { "min-width": "12rem" },
     editTemplate: InputText
   },
   {
     field: "roles_names", // Coluna para exibição na tabela
     header: "Roles",
     sortable: true,
-    style: { "min-width": "5rem" },
+    style: { "min-width": "12rem" },
     bodyTemplate: (slotProps) => slotProps.data.roles_names, // Exibe os nomes concatenados
     editTemplate: null, // Não usar este campo para editar
   },
@@ -299,7 +270,7 @@ const columns = ref([
     field: "roles_ids", // Coluna para edição
     header: "Roles", // Pode manter o mesmo header ou mudar para "Selecionar Roles"
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "12rem" },
     editTemplate: CustomCheckbox, // Usar o CustomCheckbox para editar
     options: data_roles.value, // Passar as opções para o CustomCheckbox
     hidden: true, // Ocultar esta coluna na tabela (opcional, pode remover se não quiser)
@@ -308,7 +279,7 @@ const columns = ref([
     field: "status",
     header: "Status",
     sortable: true,
-    style: { "min-width": "2rem" },
+    style: { "min-width": "12rem" },
     editTemplate: InputText
   }
 ]);
@@ -326,10 +297,10 @@ function formatValue(value) {
   return value 
 }
 
-async function executeQuery(sql) {
+async function executeQuery(domain, sql) {
   // Added domain
   try {
-    const response = await fetch(`/api/query`, {
+    const response = await fetch(`/api/${domain}/query`, {
       // Changed URL
       method: "POST",
       headers: {
@@ -345,10 +316,10 @@ async function executeQuery(sql) {
   }
 }
 
-async function executeQueryRun(sql) {
+async function executeQueryRun(domain, sql) {
   // Added domain
   try {
-    const response = await fetch(`/api/queryRun`, {
+    const response = await fetch(`/api/${domain}/queryRun`, {
       // Changed URL
       method: "POST",
       headers: {
@@ -372,13 +343,12 @@ async function fetchData() {
   // data_roles.value = dataRoles.name;
   // console.log("Fetched data_roles:", data_roles);
 
-  const data = await executeQuery( `
+  const data = await executeQuery(domain, `
   SELECT
       u.id,
-      u.username,
-      u.name,
+      u.nome,
       u.email,
-      u.phone,
+      u.telefone,
       u.password,
       u.status,
       GROUP_CONCAT(r.name, ', ') AS roles_names,
@@ -386,7 +356,7 @@ async function fetchData() {
     FROM users u
     LEFT JOIN user_roles ur ON u.id = ur.user_id
     LEFT JOIN roles r ON ur.role_id = r.id
-    GROUP BY u.id, u.username, u.email, u.phone, u.password, u.status
+    GROUP BY u.id, u.nome, u.email, u.telefone, u.password, u.status
   `);
 
   console.log("Fetched data:", data);
@@ -420,16 +390,15 @@ async function saveItem() {
     try {
       const userData = {
         id: item.value.id,
-        name: item.value.name,
-        username: item.value.username,
+        nome: item.value.nome,
         email: item.value.email,
-        phone: item.value.phone,
+        telefone: item.value.telefone,
         password: item.value.password,
         status: item.value.status,
       };
 
       // 1. Salvar/atualizar os dados básicos do usuário na tabela 'users'
-      const userResponse = await $fetch(`/api/upsert`, {
+      const userResponse = await $fetch(`/api/${domain}/upsert`, {
         method: "POST",
         body: {
           table: "users",
@@ -469,11 +438,11 @@ async function saveItem() {
 
       // 2. Atualizar a tabela 'user_roles'
       if (userId) {
-        await executeQueryRun(`DELETE FROM user_roles WHERE user_id = ${userId}`);
+        await executeQueryRun(domain, `DELETE FROM user_roles WHERE user_id = ${userId}`);
 
         if (selectedRoleIds.length > 0) {
           const insertPromises = selectedRoleIds.map((roleId) =>
-            executeQueryRun(`INSERT INTO user_roles (user_id, role_id) VALUES (${userId}, ${roleId})`)
+            executeQueryRun(domain, `INSERT INTO user_roles (user_id, role_id) VALUES (${userId}, ${roleId})`)
           );
           await Promise.all(insertPromises);
         }
@@ -535,7 +504,7 @@ function confirmDeleteItem(selectedItem) {
 
 async function deleteItem() {
   try {
-    const response = await $fetch(`/api/delete`, {
+    const response = await $fetch(`/api/${domain}/delete`, {
       method: "POST",
       body: {
         table: "users", // Substitua pelo nome da sua tabela

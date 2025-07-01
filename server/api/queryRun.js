@@ -1,6 +1,7 @@
 import { getDatabase } from '~/server/utils/db';
 
 export default defineEventHandler(async (event) => {
+  const { user } = await requireUserSession(event)
   const body = await readBody(event);
   const sql = body.sql;
 
@@ -22,9 +23,7 @@ export default defineEventHandler(async (event) => {
     //     });
     // }
 
-    // const domain = authHeader.split(" ")[1]; // extract domain from header
-    const { domain } = getRouterParams(event);
-    // const dbPath = path.resolve(`./server/data/${domain}.db`);
+    const domain = user.domain;
     const db = getDatabase(domain);
     const stmt = db.prepare(sql);
     const result = stmt.run();
