@@ -43,7 +43,7 @@
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
-            <h4 class="m-0">Categoria do usuário</h4>
+            <h4 class="m-0">Perfis de usuário</h4>
             <IconField>
               <InputIcon>
                 <i class="pi pi-search" />

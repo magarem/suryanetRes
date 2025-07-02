@@ -1,17 +1,17 @@
 <template>
   <!-- <div class="container mx-auto"> -->
-    <div class="card w-[90%]">
+    <div class="card w-full">
       <Toolbar class="mb-1">
         <template #start>
           <Button
-            label="New"
+            label="Novo"
             icon="pi pi-plus"
             severity="secondary"
             class="mr-2"
             @click="openNew"
           />
           <Button
-            label="Delete"
+            label="Excluir"
             icon="pi pi-trash"
             severity="secondary"
             @click="confirmDeleteSelected"
@@ -21,7 +21,7 @@
 
         <template #end>
           <Button
-            label="Export"
+            label="Exportar CSV"
             icon="pi pi-upload"
             severity="secondary"
             @click="exportCSV($event)"
@@ -263,21 +263,28 @@ const columns = ref([
     field: "username",
     header: "Username",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "7rem" },
+    editTemplate: InputText
+  },
+   {
+    field: "name",
+    header: "Nome",
+    sortable: true,
+    style: { "min-width": "7rem" },
     editTemplate: InputText
   },
   {
     field: "email",
     header: "Email",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "7rem" },
     editTemplate: InputText
   },
   {
     field: "phone",
     header: "Telefone",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "7rem" },
     editTemplate: InputText
   },
   {
@@ -285,7 +292,8 @@ const columns = ref([
     header: "Senha",
     sortable: true,
     style: { "min-width": "5rem" },
-    editTemplate: InputText
+    editTemplate: InputText,
+    hidden: true
   },
   {
     field: "roles_names", // Coluna para exibição na tabela
@@ -294,6 +302,7 @@ const columns = ref([
     style: { "min-width": "5rem" },
     bodyTemplate: (slotProps) => slotProps.data.roles_names, // Exibe os nomes concatenados
     editTemplate: null, // Não usar este campo para editar
+    hidden: true,
   },
   {
     field: "roles_ids", // Coluna para edição

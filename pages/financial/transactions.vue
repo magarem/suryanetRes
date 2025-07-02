@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="card">
+    <div class="card w-full">
       <Toolbar class="mb-1">
         <template #start>
           <Button
@@ -117,7 +117,7 @@
 
     <Dialog
       v-model:visible="itemDialog"
-      :style="{ width: '755px', padding: '10px 15px 10px 15px' }"
+      :style="{ width: '800px', padding: '10px 15px 10px 15px' }"
       :header="'Edição'"
       :modal="true"
     >
@@ -455,7 +455,7 @@ const columns = ref([
     field: "date",
     header: "Data",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "8rem" },
     editTemplate: "calendar"
   },
   {
@@ -479,20 +479,6 @@ const columns = ref([
     hidden: true
   },
   {
-    field: "doc",
-    header: "Documento",
-    sortable: true,
-    style: { "min-width": "5rem" },
-    editTemplate: InputText
-  },
-  {
-    field: "amount",
-    header: "Valor",
-    sortable: true,
-    style: { "min-width": "5rem" },
-    editTemplate: "money"
-  },
-  {
     field: "category",
     header: "Categoria",
     sortable: true,
@@ -506,7 +492,8 @@ const columns = ref([
     header: "Descrição",
     sortable: true,
     style: { "min-width": "10rem" },
-    editTemplate: InputText
+    editTemplate: InputText,
+    hidden: true
   },
   {
     field: "related_id",
@@ -534,6 +521,20 @@ const columns = ref([
     editTemplate: "Select",
     options: payment_method_ops,
     hidden: true
+  },
+  {
+    field: "doc",
+    header: "Documento",
+    sortable: true,
+    style: { "min-width": "5rem" },
+    editTemplate: InputText
+  },
+  {
+    field: "amount",
+    header: "Valor",
+    sortable: true,
+    style: { "min-width": "5rem" },
+    editTemplate: "money"
   }
 ]);
 

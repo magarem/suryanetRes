@@ -135,9 +135,7 @@ const a = defineProps({
 const menuItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Mensagens', href: '/messages', icon: Mail },
-    { name: 'Fidelis', href: '/messages2', icon: Mail },
-    { name: 'Reports', href: '/reports', icon: FileText },
-    { name: 'Arquivos', href: '/filemanager', icon: UserCircle },
+    { name: 'Arquivos', href: '/filemanager', icon: FileText },
     { name: 'Contatos', href: '/contacts', icon: Users },
      { name: 'Financeiro',
         icon: FileStack,
@@ -152,7 +150,7 @@ const menuItems = [
         icon: FileStack,
         children: [
             { name: 'Usuários', href: '/auth/users', icon: Users },
-            { name: 'Roles', href: '/auth/roles' },
+            { name: 'Perfis de usuário', href: '/auth/roles' },
             { name: 'Páginas', href: '/auth/pages' },
         ]
     },

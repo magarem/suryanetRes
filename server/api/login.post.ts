@@ -34,13 +34,14 @@ export default defineEventHandler(async (event) => {
 
     // --- NEW: Fetch user roles ---
     const rolesStmt = db.prepare(`
-        SELECT r.id 
+        SELECT r.id, r.name 
         FROM user_roles ur
         JOIN roles r ON ur.role_id = r.id
         WHERE ur.user_id = ?
     `);
     const userRolesResult = rolesStmt.all(user.id) as { name: string }[];
     const roles = userRolesResult.map(row => row.id);
+    const roles_names = userRolesResult.map(row => row.name);
     // --- End of new logic ---
 
     db.close();
@@ -53,7 +54,8 @@ export default defineEventHandler(async (event) => {
         username: user.username,
         email: user.email,
         domain: domain,
-        roles: roles // Add the roles array to the session
+        roles: roles, // Add the roles array to the session
+        roles_names: roles_names // Add the roles array to the session
       }
     });
       

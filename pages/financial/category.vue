@@ -4,19 +4,20 @@
       
       <Toolbar class="mb-1">
         <template #start>
-          <Button
-            label="Nova pasta"
-            icon="pi pi-plus"
-            severity="secondary"
-            class="mr-2"
-            @click="openNew('grupo')"
-          />
+          
           <Button
             label="Nova categoria"
             icon="pi pi-plus"
             severity="secondary"
             class="mr-2"
             @click="openNew('item')"
+          />
+          <Button
+            label="Nova pasta"
+            icon="pi pi-plus"
+            severity="secondary"
+            class="mr-2"
+            @click="openNew('grupo')"
           />
           <!-- <Button
             label="Exclusão"
