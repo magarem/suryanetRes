@@ -299,7 +299,7 @@ function formatValue(value) {
   if (typeof value == 'object') {
     return value.join(', '); // Format as JSON string
   }
-  return value 
+  return value
 }
 
 
@@ -337,7 +337,7 @@ async function saveItem() {
   if (isValid) {
     try {
       const userData = {...item.value, user_id: user.value.id}
-       
+
 
       // 1. Salvar/atualizar os dados básicos do usuário na tabela 'users'
       const userResponse = await $fetch(`/api/upsert`, {
@@ -435,7 +435,7 @@ async function deleteItem() {
       // Excluiu com sucesso no banco de dados
       // Se necessário, atualize a lista localmente ou busque os dados novamente
       // items.value = items.value.filter((val) => val.id !== item.value.id); //Remova esta linha se voce for buscar os dados novamente.
-      
+
       // Atualize a lista localmente
       items.value = items.value.filter(val => val.id !== item.value.id);
 
@@ -490,9 +490,18 @@ function confirmDeleteSelected() {
   deleteItemsDialog.value = true;
 }
 
-function deleteSelectedItems() {
+async function deleteSelectedItems() {
   items.value = items.value.filter(val => !selectedItems.value.includes(val));
   deleteItemsDialog.value = false;
+  
+
+  const response = await $fetch(`/api/delete`, {
+    method: "POST",
+    body: {
+      table: "contacts", // Substitua pelo nome da sua tabela
+      condition: `id in (${selectedItems.value.map(item => item.id).join(',')})`
+    }
+  });
   selectedItems.value = null;
   toast.add({
     severity: "success",
@@ -510,5 +519,4 @@ function formatCurrency(value) {
     });
   return;
 }
-
 </script>

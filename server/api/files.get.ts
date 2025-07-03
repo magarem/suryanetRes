@@ -1,5 +1,5 @@
 // Save this file as `server/api/files.get.ts`
-// This version recursively scans for folders and files and calculates total size.
+// This version recursively scans `server/mydrive` for all folders and files.
 
 import { defineEventHandler } from 'h3';
 import fs from 'node:fs/promises';
@@ -76,14 +76,18 @@ async function scanDirectory(dirPath, publicPath) {
 
 
 export default defineEventHandler(async (event) => {
-    const uploadsDir = path.join(process.cwd(), '.', 'public', 'mydrive');
-
+    // This now points directly to the `mydrive` folder.
+    const {user} = await requireUserSession(event);
+    const myDrivePath = path.resolve(process.cwd(), 'server', 'mydrive', user.domain);
+console.log('Scanning My Drive at:', myDrivePath);
     try {
-        await fs.access(uploadsDir);
+        // Check if the base directory exists
+        await fs.access(myDrivePath);
         
-        const { children, size } = await scanDirectory(uploadsDir, '/mydrive');
+        // Scan the directory and get its contents and total size
+        const { children, size } = await scanDirectory(myDrivePath, '');
 
-        // Example Quota: 100 GB in bytes. In a real app, this might come from a config file or database.
+        // Example Quota: 100 GB in bytes.
         const quota = 100 * 1024 * 1024 * 1024; 
 
         return {
@@ -96,12 +100,21 @@ export default defineEventHandler(async (event) => {
         };
 
     } catch (error) {
+        // If the `mydrive` directory doesn't exist, create it and return an empty state.
         if (error.code === 'ENOENT') {
-            await fs.mkdir(uploadsDir, { recursive: true });
-            return { id: 'root', name: 'My Drive', type: 'folder', children: [], totalSizeUsed: 0, quota: 0 };
+            await fs.mkdir(myDrivePath, { recursive: true });
+            return { 
+                id: 'root', 
+                name: 'My Drive', 
+                type: 'folder', 
+                children: [], 
+                totalSizeUsed: 0, 
+                quota: 100 * 1024 * 1024 * 1024 
+            };
         }
         
-        console.error('Error reading uploads directory:', error);
+        // Handle other potential errors
+        console.error('Error reading mydrive directory:', error);
         event.node.res.statusCode = 500;
         return { error: 'Could not list files from the server.' };
     }

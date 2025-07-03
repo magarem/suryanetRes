@@ -6,6 +6,7 @@ import path from 'node:path';
 
 export default defineEventHandler(async (event) => {
     // 1. Read the source item's path and the destination folder's path.
+    const {user} = await requireUserSession(event);
     const body = await readBody(event);
     const { sourcePath, destinationPath } = body;
 
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 3. Define the base path and construct safe, absolute paths.
-    const baseUploadsDir = path.resolve(process.cwd(), '.', 'public');
+    const baseUploadsDir = path.resolve(process.cwd(), 'server', 'mydrive', user.domain);
     const oldAbsolutePath = path.join(baseUploadsDir, sourcePath);
     const destinationAbsolutePath = path.join(baseUploadsDir, destinationPath);
 

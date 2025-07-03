@@ -133,7 +133,7 @@ const a = defineProps({
 // --- Data-driven menu structure ---
 // Using shallowRef for performance, as the components within are static.
 const menuItems = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { name: 'Início', href: '/', icon: LayoutDashboard },
     { name: 'Mensagens', href: '/messages', icon: Mail },
     { name: 'Arquivos', href: '/filemanager', icon: FileText },
     { name: 'Contatos', href: '/contacts', icon: Users },
@@ -142,7 +142,7 @@ const menuItems = [
         children: [
             { name: 'Categorias', href: '/financial/category', icon: Users },
             { name: 'Métodos de pagamento', href: '/financial/payment_method', icon: Users },
-            { name: 'Movimentos', href: '/financial/transactions', icon: Users },
+            { name: 'Lançamentos', href: '/financial/transactions', icon: Users },
             { name: 'Relatórios', href: '/financial/reports', icon: Users },
         ]
     },

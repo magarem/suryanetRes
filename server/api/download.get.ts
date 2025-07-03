@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 3. Define base path and construct absolute path
-    const baseUploadsDir = path.resolve(process.cwd(), '.', 'public');
+    const baseUploadsDir = path.resolve(process.cwd(), 'server', 'mydrive');
     const absolutePath = path.join(baseUploadsDir, relativePath);
 
     // 4. **SECURITY CHECK**: Ensure path is within the allowed directory

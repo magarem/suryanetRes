@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 export default defineEventHandler(async (event) => {
+    const {user} = await requireUserSession(event);
     // 1. Read the current path and the desired new name from the request body.
     const body = await readBody(event);
     const { path: relativePath, newName } = body;
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 4. Define the base path and construct safe, absolute paths for the old and new locations.
-    const baseUploadsDir = path.resolve(process.cwd(), '.', 'public');
+    const baseUploadsDir = path.resolve(process.cwd(), 'server', 'mydrive', user.domain);
     const oldAbsolutePath = path.join(baseUploadsDir, relativePath);
     const newAbsolutePath = path.join(path.dirname(oldAbsolutePath), sanitizedNewName);
 

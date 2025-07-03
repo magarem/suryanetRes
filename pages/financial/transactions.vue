@@ -763,17 +763,23 @@ function confirmDeleteSelected() {
 }
 
 async function deleteSelectedItems() {
-  for (const selected of selectedItems.value) {
-    await executeQueryRun(
-      `DELETE FROM financial_transactions WHERE id = ${selected.id}`
-    );
-  }
-  selectedItems.value = [];
+  items.value = items.value.filter(val => !selectedItems.value.includes(val));
   deleteItemsDialog.value = false;
-  items.value = await executeQuery(
-    `SELECT * FROM financial_transactions`
-  );
-  toast.add({ severity: "success", summary: "Removidos", life: 3000 });
+  
+  const response = await $fetch(`/api/delete`, {
+    method: "POST",
+    body: {
+      table: "financial_transactions", // Substitua pelo nome da sua tabela
+      condition: `id in (${selectedItems.value.map(item => item.id).join(',')})`
+    }
+  });
+  selectedItems.value = null;
+  toast.add({
+    severity: "success",
+    summary: "Successful",
+    detail: "Items Deleted",
+    life: 3000
+  });
 }
 
 onMounted(async () => {

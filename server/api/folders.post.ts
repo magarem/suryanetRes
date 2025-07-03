@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 export default defineEventHandler(async (event) => {
+  const {user} = await requireUserSession(event);
   const body = await readBody(event);
   const { name, parentPath } = body; // Expect 'name' and the 'parentPath' of the directory to create in.
 
@@ -15,10 +16,10 @@ export default defineEventHandler(async (event) => {
   }
 
   // 2. Define the absolute base path for all uploads.
-  const baseUploadsDir = path.resolve(process.cwd(), '.', 'public');
+  const baseUploadsDir = path.resolve(process.cwd(), 'server', 'mydrive', user.domain);
   
   // 3. Determine the relative parent path, defaulting to the root '/uploads' folder.
-  const relativeParentPath = parentPath && typeof parentPath === 'string' ? parentPath : '/uploads';
+  const relativeParentPath = parentPath && typeof parentPath === 'string' ? parentPath : '';
   
   // 4. Safely construct the absolute path for the parent directory.
   const parentDir = path.join(baseUploadsDir, relativeParentPath);

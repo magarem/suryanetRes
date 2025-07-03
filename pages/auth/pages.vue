@@ -540,14 +540,23 @@ function confirmDeleteSelected() {
   deleteItemsDialog.value = true;
 }
 
-function deleteSelectedItems() {
+async function deleteSelectedItems() {
   items.value = items.value.filter(val => !selectedItems.value.includes(val));
   deleteItemsDialog.value = false;
+  
+
+  const response = await $fetch(`/api/delete`, {
+    method: "POST",
+    body: {
+      table: "pages", // Substitua pelo nome da sua tabela
+      condition: `id in (${selectedItems.value.map(item => item.id).join(',')})`
+    }
+  });
   selectedItems.value = null;
   toast.add({
     severity: "success",
-    summary: "Sucesso",
-    detail: "Páginas Excluídas",
+    summary: "Successful",
+    detail: "Items Deleted",
     life: 3000
   });
 }

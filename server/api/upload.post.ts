@@ -4,7 +4,27 @@ import { defineEventHandler, readMultipartFormData } from 'h3';
 import path from 'node:path';
 import fs from 'node:fs';
 
+/**
+ * Sanitizes a filename by removing special characters and normalizing spaces.
+ * @param filename The original filename (e.g., "My File (2025)!.jpg")
+ * @returns A clean, URL-friendly filename (e.g., "my-file-2025.jpg")
+ */
+function sanitizeFilename(filename: string): string {
+  const name = path.basename(filename, path.extname(filename));
+  const extension = path.extname(filename);
+
+  const sanitizedName = name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove all characters that are not letters, numbers, spaces, or hyphens
+    .trim()
+    .replace(/\s+/g, '-'); // Replace one or more spaces with a single hyphen
+
+  return sanitizedName + extension.toLowerCase();
+}
+
+
 export default defineEventHandler(async (event) => {
+  const {user} = await requireUserSession(event);
   try {
     const formData = await readMultipartFormData(event);
 
@@ -12,42 +32,43 @@ export default defineEventHandler(async (event) => {
       throw new Error('No form data received.');
     }
 
-    // --- Logic to determine destination path ---
-    let relativeParentPath = '/uploads'; // Default to root
+    let relativeParentPath = ''; // Start with an empty path for the root of the user's drive
     const pathPart = formData.find(p => p.name === 'parentPath');
     
-    // The part's data is a buffer, so we convert it to a string.
     if (pathPart && pathPart.data) {
         relativeParentPath = pathPart.data.toString();
     }
 
-    // --- Security and Path Handling ---
-    const baseUploadsDir = path.resolve(process.cwd(), '.', 'public');
+    const baseUploadsDir = path.resolve(process.cwd(), 'server', 'mydrive', user.domain);
+    // We join the user's domain and the relative path to get the final destination
     const destinationDir = path.join(baseUploadsDir, relativeParentPath);
 
-    // **SECURITY CHECK**: Ensure the destination is within the allowed base directory.
-    if (!destinationDir.startsWith(baseUploadsDir)) {
+    if (!destinationDir.startsWith(path.join(baseUploadsDir))) {
       event.node.res.statusCode = 400;
       return { error: 'Invalid upload path specified.' };
     }
 
-    // Ensure destination directory exists.
      if (!fs.existsSync(destinationDir)) {
           fs.mkdirSync(destinationDir, { recursive: true });
      }
-    // --- End Security ---
 
     const uploadedFileDetails = [];
     for (const part of formData) {
       if (part.filename) {
-        const filePath = path.join(destinationDir, part.filename);
+        
+        // --- CHANGE 1: Sanitize the filename ---
+        const sanitizedFilename = sanitizeFilename(part.filename);
+
+        // --- CHANGE 2: Use the sanitized filename to create the file path ---
+        const filePath = path.join(destinationDir, sanitizedFilename);
         fs.writeFileSync(filePath, part.data);
         
         uploadedFileDetails.push({
-          name: part.filename,
+          name: sanitizedFilename, // Return the new name
           size: part.data.length,
           type: part.type,
-          url: `${relativeParentPath}/${part.filename}`
+          // --- CHANGE 3: Use the sanitized filename for the URL ---
+          url: `${relativeParentPath}/${sanitizedFilename}`
         });
       }
     }

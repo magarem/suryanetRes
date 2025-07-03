@@ -91,7 +91,6 @@
                     <i v-if="index < breadcrumbs.length - 1" class="fas fa-chevron-right mx-2 text-xs"></i>
                 </div>
             </div>
-
             <!-- Grid Items -->
             <div v-if="pending && !fileSystem" class="text-center text-gray-400">Loading files...</div>
             <div v-else-if="error" class="text-center text-red-400">Could not load files.</div>
@@ -107,7 +106,7 @@
                         </div>
                         <i class="fas fa-folder text-yellow-400 text-5xl mb-3"></i>
                         <h3 class="font-medium text-white truncate w-full">{{ item.name }}</h3>
-                        <p class="text-xs text-gray-400">{{ item.children.length }} items</p>
+                        <p class="text-xs text-gray-400">{{ item.children.length || 0 }} items</p>
                     </div>
 
                     <!-- File Item -->
@@ -120,7 +119,7 @@
                         
                         <!-- Consistent Height Preview Area -->
                         <div v-if="item.preview === 'image'" class="relative h-24 bg-gray-700 rounded-md mb-3 flex-shrink-0">
-                            <img :src="item.url" class="absolute top-0 left-0 w-full h-full object-cover rounded-md" :alt="item.name">
+                            <img :src="getImageUrl(item.url)" class="absolute top-0 left-0 w-full h-full object-cover rounded-md" :alt="item.name">
                         </div>
                         
                         <!-- Icon Preview -->
@@ -219,7 +218,7 @@
     <!-- Dialog for Image Viewer -->
     <Dialog v-model:visible="imageViewerVisible" modal :header="imageToView?.name" :style="{ width: '80vw', 'max-width': '1200px' }" :pt="dialogStyles">
         <div class="flex items-center justify-center p-4 bg-gray-900">
-            <img :src="imageToView?.url" class="max-w-full max-h-[80vh] object-contain" :alt="imageToView?.name" />
+            <img v-if="imageToView" :src="getImageUrl(imageToView.url)" class="max-w-full max-h-[80vh] object-contain" :alt="imageToView.name" />
         </div>
         <template #footer>
             <Button :label="appConfig.buttons.close" icon="pi pi-times" @click="imageViewerVisible = false" text />
@@ -227,12 +226,22 @@
     </Dialog>
     
     <!-- Dialog for PDF Viewer -->
-    <Dialog v-model:visible="pdfViewerVisible" modal :header="pdfToView?.name" :style="{ width: '80vw', 'max-width': '1200px', height: '95vh' }" :pt="dialogStyles">
-        <iframe :src="pdfToView?.url" class="w-full h-full border-0"></iframe>
-        <template #footer>
-            <Button :label="appConfig.buttons.close" icon="pi pi-times" @click="pdfViewerVisible = false" text />
-        </template>
-    </Dialog>
+   <Dialog 
+    v-model:visible="pdfViewerVisible" 
+    modal 
+    :header="pdfToView?.name" 
+    :style="{ width: '80vw', 'max-width': '1200px', height: '95vh' }" 
+    :pt="{
+        ...dialogStyles,
+        root:    'flex flex-col',  // 👈 Make the dialog a flex column
+        content: 'flex-1 p-0'      // 👈 Make content area grow and remove padding
+    }"
+>
+    <iframe v-if="pdfToView" :src="getImageUrl(pdfToView.url)" class="w-full h-full border-0"></iframe>
+    <template #footer>
+        <Button :label="appConfig.buttons.close" icon="pi pi-times" @click="pdfViewerVisible = false" text />
+    </template>
+</Dialog>
 
     <Toast />
   </div>
@@ -257,6 +266,14 @@ const toggleSidebarCollapse = () => {
     isSidebarCollapsed.value = !isSidebarCollapsed.value;
 };
 
+const getImageUrl = (relativePath) => {
+  // 1. Split the path by the '/' separator.
+  const parts = relativePath.split('/');
+  // 2. Encode each part (folder name, filename) individually.
+  const encodedParts = parts.map(part => encodeURIComponent(part));
+  // 3. Join them back together and create the final URL.
+  return `/api/getFile${encodedParts.join('/')}`;
+};
 
 // --- Dialog State ---
 const newFolderDialogVisible = ref(false);
@@ -290,8 +307,8 @@ const quotaInBytes = ref(0);
 const searchQuery = ref('');
 
 // --- Fetching file data from the new API endpoint ---
-const { data: fileSystem, pending, error, refresh } = await useAsyncData('file-list', () => $fetch('/api/files'));
-
+const { data: fileSystem, pending, error, refresh } = await useFetch('/api/files');
+console.log('File system data fetched:', fileSystem.value);
 // --- Navigation State ---
 const breadcrumbs = ref([]);
 
@@ -404,10 +421,13 @@ const openFolder = (folder) => {
 
 const openFile = (item) => {
     if (item.type !== 'file' || !item.url) return;
-    if (item.iconClass?.includes('fa-file-pdf')) {
-        viewPdf(item);
+
+    // Call the more robust viewFile handler which already handles images and PDFs
+    if (item.preview === 'image' || item.iconClass?.includes('fa-file-pdf')) {
+      viewFile(item);
     } else {
-        window.open(item.url, '_blank');
+      // Fallback for other file types
+      window.open(item.url, '_blank');
     }
 };
 
@@ -613,7 +633,7 @@ const createFolder = async () => {
             method: 'POST',
             body: { 
                 name: name,
-                parentPath: currentFolder.value.id === 'root' ? '/uploads' : currentFolder.value.id
+                parentPath: currentFolder.value.id === 'root' ? '' : currentFolder.value.id
             }
         });
         toast.add({ ...appConfig.toasts.createFolder.success, life: 3000 });
@@ -625,7 +645,7 @@ const createFolder = async () => {
 };
 
 const handleBeforeUpload = (event) => {
-    const parentPath = currentFolder.value.id === 'root' ? '/uploads' : currentFolder.value.id;
+    const parentPath = currentFolder.value.id === 'root' ? '' : currentFolder.value.id;
     event.formData.append('parentPath', parentPath);
 };
 

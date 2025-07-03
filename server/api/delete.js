@@ -2,10 +2,11 @@
 import { getDatabase } from '~/server/utils/db';
 
 export default defineEventHandler(async (event) => {
+  const {user} = await requireUserSession(event);
   const body = await readBody(event);
   const { table, condition } = body;
 
-  const domain = event.context.params.domain;
+  const domain = user.domain;
   const db = getDatabase(domain);
 
   if (!table || !condition) {

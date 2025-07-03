@@ -16,7 +16,7 @@ async function getAvailableCopyName(filePath: string): Promise<string> {
     const baseName = path.basename(filePath, ext);
 
     let copyNum = 1;
-    let newName = `${baseName} (copy)${ext}`;
+    let newName = `${baseName}_(copy)${ext}`;
     let newPath = path.join(dir, newName);
 
     // Loop until we find a name that doesn't exist
@@ -39,6 +39,8 @@ async function getAvailableCopyName(filePath: string): Promise<string> {
 
 
 export default defineEventHandler(async (event) => {
+    const {user} = await requireUserSession(event);
+
     // 1. Read the source path from the request body.
     const body = await readBody(event);
     const { path: sourceRelativePath } = body;
@@ -50,7 +52,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 3. Define the base path and construct the absolute path for the source file.
-    const baseUploadsDir = path.resolve(process.cwd(), '.', 'public');
+    const baseUploadsDir = path.resolve(process.cwd(), 'server', 'mydrive', user.domain);
     const sourceAbsolutePath = path.join(baseUploadsDir, sourceRelativePath);
 
     // 4. **SECURITY CHECK**: Ensure the source path is within the allowed uploads directory.
