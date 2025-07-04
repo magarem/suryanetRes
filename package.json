@@ -19,6 +19,7 @@
     "@tailwindcss/postcss": "^4.1.10",
     "@tailwindcss/vite": "^4.1.10",
     "@unhead/vue": "^2.0.3",
+    "@vite-pwa/nuxt": "^1.0.4",
     "@vueuse/nuxt": "^13.4.0",
     "better-sqlite3": "^12.0.0",
     "chart.js": "^4.5.0",

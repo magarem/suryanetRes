@@ -59,7 +59,7 @@ definePageMeta({
 import { ref, reactive } from 'vue';
 import NoticeBoard from '~/components/NoticeBoard.vue';
 import { executeQuery } from "~/utils/db"; // Adjust the import path as necessary
-
+console.log('11111111 NoticeForm component loaded');
 // If PrimeVue components are not globally registered, you would import it like this:
 // import MultiSelect from 'primevue/multiselect';
 const { user, clear: clearSession } = useUserSession()

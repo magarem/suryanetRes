@@ -12,7 +12,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     const { user } = useUserSession();
     console.log(`User session: ${user.value ? JSON.stringify(user.value) : 'not logged in'}`);
 
-
+// If the page is protected but the user is not logged in, redirect them to the login page.
+    // if (!user.value) {
+    //     return navigateTo('/login');
+    // }
     // --- 1. Fetch Required Roles for the Destination Page ---
     // We use `useFetch` which works on both client and server.
     // It calls a dedicated API endpoint to get the required roles from the database.
@@ -35,10 +38,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     // `useUserSession` is a composable that safely accesses the user's session cookie.
     
     
-    // If the page is protected but the user is not logged in, redirect them to the login page.
-    if (!user.value) {
-        return navigateTo('/login');
-    }
+    
 
     // --- 4. Validate User Roles ---
     // Get the user's roles from their session (which were added at login).

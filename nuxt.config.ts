@@ -28,7 +28,7 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
-  modules: [ '@nuxt/scripts', 'nuxt-auth-utils', '@primevue/nuxt-module', '@vueuse/nuxt', '@nuxtjs/tailwindcss'],
+  modules: ['@vite-pwa/nuxt', '@nuxt/scripts', 'nuxt-auth-utils', '@primevue/nuxt-module', '@vueuse/nuxt', '@nuxtjs/tailwindcss', '@vite-pwa/nuxt'],
   postcss: {
     plugins: {
       '@tailwindcss/postcss': {},
@@ -38,6 +38,41 @@ export default defineNuxtConfig({
   plugins: [
     '~/plugins/primevue.js'
   ],
+  pwa: {
+    manifest: {
+      name: 'SuryaNet',
+      short_name: 'SuryaNet Team integration',
+      description: 'Simple and secure team collaboration platform',
+      theme_color: '#27272A',
+      background_color: '#27272A',
+       // Enable the Window Controls Overlay feature
+      display_override: ['window-controls-overlay'],
+      display: 'standalone',
+      lang: 'en',
+      icons: [
+        {
+          src: 'logo_192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+        },
+        {
+          src: 'logo_512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+        }
+      ],
+    },
+   workbox: {
+      // Add this line
+      navigateFallback: '/',
+      // It's also good practice to ensure core assets are cached
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}'], 
+    },
+    devOptions: {
+      enabled: true,
+      type: 'module',
+    },
+  },
    primevue: {
       options: {
         ripple: true,

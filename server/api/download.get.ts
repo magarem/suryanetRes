@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 export default defineEventHandler(async (event) => {
+    const {user} = await requireUserSession(event);
     // 1. Get the file path from the query string
     const query = getQuery(event);
     const relativePath = query.path as string;
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 3. Define base path and construct absolute path
-    const baseUploadsDir = path.resolve(process.cwd(), 'server', 'mydrive');
+    const baseUploadsDir = path.resolve(process.cwd(), 'server', 'mydrive', user.domain);
     const absolutePath = path.join(baseUploadsDir, relativePath);
 
     // 4. **SECURITY CHECK**: Ensure path is within the allowed directory

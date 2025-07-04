@@ -2,6 +2,7 @@
   <div>
     <!-- This will render the default layout, which then renders the page inside its <slot /> -->
     <NuxtLayout>
+      <VitePwaManifest />
       <NuxtPage />
     </NuxtLayout>
   </div>

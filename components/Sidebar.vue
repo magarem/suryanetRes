@@ -158,7 +158,7 @@ const menuItems = [
     // { name: 'Settings', href: '#', icon: Settings },
 ];
 
-
+console.log('User allowed pages:', a.userAllowedPages);
 visibleMenu.value = getVisibleMenuItems(menuItems, a.userAllowedPages);
 
 // Reactive state for the collapsible menus
