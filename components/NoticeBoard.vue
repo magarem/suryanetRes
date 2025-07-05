@@ -1,9 +1,9 @@
 <template>
-  <div class="bg-stone-400 shadow-lg rounded-lg overflow-hidden">
+  <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
     <div class="p-5 border-b border-gray-200 dark:border-gray-700">
-      <h3 class="text-xl font-semibold text-stone-800 flex items-center">
+      <h3 class="text-xl font-semibold text-gray-800 dark:text-white flex items-center">
         <Megaphone class="h-6 w-6 mr-3 text-indigo-500" />
-        Quadro de avisos
+        Notice Board
       </h3>
     </div>
     
@@ -18,27 +18,25 @@
     </div>
 
     <!-- Notices List -->
-    <ul v-else-if="notices && notices.length" class="grid p-4 grid-cols-4 sm:grid-cols-2 md:grid-cols-4 gap-1 divide-y divide-gray-200 dark:divide-gray-700">
-    
-      <div v-for="notice in notices" :key="notice.id" class="p-5 w-full  transition duration-150 ease-in-out">
-        <div class="flex items-start space-x-4 bg-amber-600 w-full h-[150px]">
+    <ul v-else-if="notices && notices.length" class="divide-y divide-gray-200 dark:divide-gray-700">
+      <li v-for="notice in notices" :key="notice.id" class="p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition duration-150 ease-in-out">
+        <div class="flex items-start space-x-4">
           <div class="flex-shrink-0">
             <span class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
               <UserCircle class="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
             </span>
           </div>
           <div class="flex-1 min-w-0">
-            <div class="mt-2 flex items-center text-sm text-stone-700 italic font-semibold ">
+            <h4 class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ notice.title }}</h4>
+            <p class="mt-1 text-base text-gray-600 dark:text-gray-300">{{ notice.content }}</p>
+            <div class="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
               <span class="font-medium">{{ notice.authorName || 'System' }}</span>
               <span class="mx-2">&middot;</span>
               <span>{{ notice.createdAt }}</span>
             </div>
-            <h4 class="text-lg font-bold text-stone-800">{{ notice.title }}</h4>
-            <p class="mt-1 text-base text-gray-800">{{ notice.content }}</p>
-            
           </div>
         </div>
-      </div>
+      </li>
     </ul>
 
     <!-- Empty State -->

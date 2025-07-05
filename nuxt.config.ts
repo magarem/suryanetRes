@@ -2,13 +2,14 @@ import Aura from '@primeuix/themes/aura';
 import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   // Optional: Add Google Fonts
-  app: {
+app: {
     head: {
       link: [
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap' },
-     { rel: 'stylesheet', href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css' },
-          { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' }
-       
+        // Merged 'Inter' font weights into a single request
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap' },
+        
+        // Font Awesome stylesheet
+        { rel: 'stylesheet', href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css' }
       ]
     }
   },

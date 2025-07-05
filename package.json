@@ -17,9 +17,10 @@
     "@primevue/icons": "^4.3.5",
     "@primevue/nuxt-module": "^4.3.5",
     "@tailwindcss/postcss": "^4.1.10",
-    "@tailwindcss/vite": "^4.1.10",
+    "@tailwindcss/vite": "^4.1.11",
     "@unhead/vue": "^2.0.3",
     "@vite-pwa/nuxt": "^1.0.4",
+    "@vueuse/core": "^13.5.0",
     "@vueuse/nuxt": "^13.4.0",
     "better-sqlite3": "^12.0.0",
     "chart.js": "^4.5.0",
@@ -41,7 +42,7 @@
   "devDependencies": {
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.10"
+    "tailwindcss": "^4.1.11"
   },
   "trustedDependencies": [
     "@parcel/watcher",

@@ -7,7 +7,8 @@
   -->
   <div class="flex w-full h-full text-gray-200 antialiased">
     <!-- Sidebar -->
-    <aside
+    <aside 
+       v-if="width >= 768"
       class="flex-shrink-0 bg-gray-800 p-2 flex flex-col justify-between transition-all duration-300 ease-in-out"
       :class="isSidebarCollapsed ? 'w-12' : 'w-44'"
     >
@@ -17,10 +18,10 @@
           class="flex items-center mb-8 ml-2 mt-2"
           :class="isSidebarCollapsed ? 'justify-center' : ''"
         >
-          <i
+          <!-- <i
             class="fas fa-rocket text-blue-400 text-2xl"
             :class="{ 'mr-3': !isSidebarCollapsed }"
-          ></i>
+          ></i> -->
           <h1 v-if="!isSidebarCollapsed" class="text-xl font-bold text-white">
             {{ appConfig.general.appName }}
           </h1>
@@ -136,14 +137,14 @@
             class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center shadow-lg transition-transform transform hover:scale-105"
           >
             <i class="fas fa-upload mr-2"></i>
-            {{ appConfig.buttons.upload }}
+            <span  v-if="width >= 768">{{ appConfig.buttons.upload }}</span>
           </button>
           <button
             @click="newFolderDialogVisible = true"
-            class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors"
+            class="mr-4 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition-colors"
           >
             <i class="fas fa-folder-plus mr-2"></i>
-            {{ appConfig.buttons.newFolder }}
+            <span  v-if="width >= 768">{{ appConfig.buttons.newFolder }}</span>
           </button>
         </div>
         <div class="relative w-full max-w-xs">
@@ -153,7 +154,7 @@
           <input
             type="text"
             v-model="searchQuery"
-            placeholder="Search files..."
+            placeholder="Procurar..."
             class="w-full bg-gray-700 border border-gray-600 rounded-full py-2 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -165,7 +166,6 @@
         <h2  v-if="searchQuery" class="text-xl font-semibold text-white mb-4">
           Procurando por "{{ searchQuery }}"
         </h2>
-
         <!-- Breadcrumbs (hidden during search) -->
         <div
           v-if="!searchQuery"
@@ -190,12 +190,12 @@
         </div>
         <!-- Grid Items -->
         <div v-if="pending && !fileSystem" class="text-center text-gray-400">
-          Loading files...
+          Carregando...
         </div>
         <div v-else-if="error" class="text-center text-red-400">
-          Could not load files.
+          Erro.
         </div>
-        <div v-else :class="['grid', appConfig.grid.columns, 'gap-2']">
+        <div v-else class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2">
           <!-- Data is now filtered based on the universal displayContent -->
           <div v-for="item in displayContent" :key="item.id">
             <!-- Folder Item -->
@@ -225,7 +225,7 @@
             <div
               v-else
               @click="openFile(item)"
-              class="bg-gray-800 rounded-lg p-4 flex flex-col group relative overflow-hidden h-52 hover:bg-gray-700/50 transition-all cursor-pointer"
+              class="bg-gray-800 rounded-lg p-3 flex flex-col group relative overflow-hidden h-52 hover:bg-gray-700/50 transition-all cursor-pointer"
             >
               <div @click.stop class="absolute top-2 right-2 z-20">
                 <button
@@ -239,7 +239,7 @@
               <!-- Consistent Height Preview Area -->
               <div
                 v-if="item.preview === 'image'"
-                class="relative h-24 bg-gray-700 rounded-md mb-3 flex-shrink-0"
+                class="relative h-34 bg-gray-700 rounded-md mb-1 flex-shrink-0"
               >
                 <img
                   :src="getImageUrl(item.url)"
@@ -508,6 +508,7 @@ import { useToast } from "primevue/usetoast";
 import Menu from "primevue/menu";
 
 const toast = useToast();
+const { width, height } = useWindowSize()
 
 // --- Sidebar State ---
 const isSidebarCollapsed = ref(false);
@@ -1001,12 +1002,12 @@ const appConfig = {
     appName: "Arquivos",
     rootFolderName: "My Drive"
   },
-  grid: {
-    columns:
-      "grid-cols-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
-  },
+//   grid: {
+//     columns:
+//       "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+//   },
   dialogs: {
-    newFolder: { header: "Nova pasta", label: "Nome da pasta" },
+    newFolder: { header: "", label: "Nome da pasta" },
     rename: { header: "Renomear", label: "Novo nome" },
     move: { header: "Move Item" },
     upload: {
