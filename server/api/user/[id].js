@@ -24,18 +24,24 @@ export default defineEventHandler(async event => {
   if (userId == 'me') {
     userId = user.id; // Se o ID for 'me', usamos o ID do usuário autenticado.
   }
+
+   if (userId == 'all') {
+    userId = 0; // Se o ID for 'me', usamos o ID do usuário autenticado.
+  }
   // Validação básica para garantir que o ID foi fornecido.
  
 
+  console.log(`Buscando usuário com ID: ${userId} no domínio: ${user.domain}`);
+  
   try {
     // Prepara a consulta SQL para evitar SQL Injection.
     // **IMPORTANTE**: Selecionamos explicitamente os campos que queremos retornar,
     // excluindo dados sensíveis como 'password' e tokens.
-    const stmt = db.prepare("SELECT id, username, name, email, phone, description, status FROM users WHERE id = ?");
+    const stmt = db.prepare(`SELECT id, username, name, email, phone, description, status FROM users WHERE (? = 0 OR id = ?)`);
 
     // Executa a consulta com o ID fornecido.
     // Usamos .get() porque esperamos apenas um resultado.
-    const user = stmt.get(userId);
+    const user = stmt.all(userId, userId);
 
     // Se nenhum usuário for encontrado, 'user' será undefined.
     if (!user) {

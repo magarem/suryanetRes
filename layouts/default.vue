@@ -19,6 +19,9 @@
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: ["authenticated"]
+});
 // The script block remains the same
 import { ref } from 'vue';
 import Sidebar from '~/components/Sidebar.vue';
@@ -29,6 +32,7 @@ const { user, clear: clearSession } = useUserSession()
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value;
 };
+
 
 console.log('user', user.value);
 
