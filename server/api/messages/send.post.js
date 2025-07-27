@@ -9,7 +9,8 @@ export default defineEventHandler(async (event) => {
 
   const body = await readBody(event);
   const { senderId, receiverId, subject, body: messageBody } = body;
-
+  console.log('body send email:', body);
+  
 
   
   if (!senderId || !receiverId || !subject || !messageBody) {

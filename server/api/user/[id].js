@@ -16,6 +16,9 @@ export default defineEventHandler(async event => {
   
   
   let userId = getRouterParam(event, "id");
+  let username = null
+  let userData = null
+
  if (!userId) {
     setResponseStatus(event, 400); // Bad Request
     return {error: "O ID do usuário é obrigatório."};
@@ -27,30 +30,37 @@ export default defineEventHandler(async event => {
 
    if (userId == 'all') {
     userId = 0; // Se o ID for 'me', usamos o ID do usuário autenticado.
+  } 
+  
+  if (String(userId).startsWith('username:')) {
+    username = userId.split(':')[1]; // Se o ID for 'me', usamos o ID do usuário autenticado.
   }
   // Validação básica para garantir que o ID foi fornecido.
  
 
   console.log(`Buscando usuário com ID: ${userId} no domínio: ${user.domain}`);
+  console.log(`Buscando usuário com username: ${username} no domínio: ${user.domain}`);
   
   try {
     // Prepara a consulta SQL para evitar SQL Injection.
     // **IMPORTANTE**: Selecionamos explicitamente os campos que queremos retornar,
     // excluindo dados sensíveis como 'password' e tokens.
-    const stmt = db.prepare(`SELECT id, username, name, email, phone, description, status FROM users WHERE (? = 0 OR id = ?)`);
-
-    // Executa a consulta com o ID fornecido.
-    // Usamos .get() porque esperamos apenas um resultado.
-    const user = stmt.all(userId, userId);
-
+    if (username) {
+      const stmt = db.prepare(`SELECT id, username, name, email, phone, description, status FROM users WHERE username = ?`);
+      // Executa a consulta com o nome de usuário fornecido.
+      userData = stmt.get(username);
+    }else{
+      const stmt = db.prepare(`SELECT id, username, name, email, phone, description, status FROM users WHERE (? = 0 OR id = ?)`);
+      userData = stmt.all(userId, userId);
+    }
     // Se nenhum usuário for encontrado, 'user' será undefined.
-    if (!user) {
+    if (!userData) {
       setResponseStatus(event, 404); // Not Found
       return {error: "Usuário não encontrado."};
     }
 
     // Se o usuário for encontrado, retorna os dados como JSON com status 200 (OK).
-    return user;
+    return userData;
   } catch (error) {
     // Log do erro no console do servidor para depuração.
     console.error("Erro ao buscar usuário no banco de dados:", error);

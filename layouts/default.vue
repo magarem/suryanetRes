@@ -10,7 +10,7 @@
       <Topbar @toggle-sidebar="toggleSidebar" :is-sidebar-open="isSidebarOpen" />
 
       <!-- Page Content -->
-      <main class="flex-1 p-6 overflow-y-auto">
+      <main class="flex-1 p-1 overflow-y-auto">
         <!-- THE ONLY CHANGE IS HERE -->
         <slot />
       </main>
@@ -19,21 +19,38 @@
 </template>
 
 <script setup>
-definePageMeta({
-  middleware: ["authenticated"]
-});
+
 // The script block remains the same
 import { ref } from 'vue';
 import Sidebar from '~/components/Sidebar.vue';
 import Topbar from '~/components/Topbar.vue';
-
-const isSidebarOpen = ref(true);
+const { width, height } = useWindowSize();
+const isSidebarOpen = ref(true); // Open sidebar on larger screens
 const { user, clear: clearSession } = useUserSession()
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value;
 };
 
 
+// Define breakpoints
+// const isMobile = computed(() => width.value < 768); // Telas menores que 768px
+// const isLargeScreen = computed(() => !isMobile.value); // Telas maiores
+
+// isSidebarOpen.value = isLargeScreen.value; // Open sidebar on larger screens
+// if (width.value>500) {
+//   // If the screen width is greater than 500px, open the sidebar
+//   isSidebarOpen.value = true;
+// } else {
+//   // Otherwise, close the sidebar
+//   isSidebarOpen.value = false;
+// }
+
+if (!user.value) {
+  // If the user is not logged in, clear the session
+  clearSession();
+  // Optionally, you can redirect to the login page
+  navigateTo('/login');
+}
 console.log('user', user.value);
 
 const { data: userAllowedPages, pending, error } = await useFetch(`/api/navigation?userId=${user.value.id}`, {

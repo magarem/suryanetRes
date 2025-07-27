@@ -76,7 +76,11 @@ definePageMeta({
   layout: 'auth',
 });
 
-const { loggedIn, user, fetch: refreshSession } = useUserSession()
+const { loggedIn, clear: clearSession, user, fetch: refreshSession } = useUserSession()
+async function start() {
+  await clearSession();
+}
+await start()
 const credentials = reactive({
   domain: '',
   email: '',

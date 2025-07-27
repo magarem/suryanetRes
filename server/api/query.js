@@ -3,6 +3,7 @@ import { getDatabase } from '~/server/utils/db';
 
 export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event)
+
   const body = await readBody(event);
   const sql = body.sql;
 

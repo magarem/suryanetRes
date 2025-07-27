@@ -81,6 +81,8 @@ import {
     LogOut, 
     ChevronDown 
 } from 'lucide-vue-next';
+const { width, height } = useWindowSize();
+
 
 function getVisibleMenuItems(masterMenu, allowedPages) {
   // 1. For efficient lookup, create a Set of the allowed 'href' values.
@@ -126,15 +128,16 @@ const a = defineProps({
   }, 
   isOpen: {
     type: Boolean,
-    required: true,
+    required: true
   },
 });
+
 
 // --- Data-driven menu structure ---
 // Using shallowRef for performance, as the components within are static.
 const menuItems = [
     { name: 'Início', href: '/', icon: LayoutDashboard },
-    { name: 'Mensagens', href: '/messages', icon: Mail },
+    { name: 'Chat', href: '/chat', icon: Mail },
     { name: 'Arquivos', href: '/filemanager', icon: FileText },
     { name: 'Contatos', href: '/contacts', icon: Users },
      { name: 'Financeiro',

@@ -5,9 +5,9 @@ export default defineEventHandler(async (event) => {
     const { user } = await requireUserSession(event);
     console.log('user:', user);
     
-    if (!user?.id || !user?.domain) {
-        throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
-    }
+    // if (!user?.id || !user?.domain) {
+    //     throw createError({ statusCode: 401, statusMessage: 'Unauthorized2' });
+    // }
 
     const dbPath = path.join(process.cwd(), 'server', 'data', `${user.domain}.db`);
     const db = new Database(dbPath);

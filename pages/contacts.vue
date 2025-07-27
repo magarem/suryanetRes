@@ -194,9 +194,9 @@
 </template>
 
 <script setup>
-definePageMeta({
-  middleware: ['authenticated'],
-})
+// definePageMeta({
+//   middleware: ['authenticated'],
+// })
 import { ref, onMounted } from "vue";
 import { useToast } from "primevue/usetoast";
 import { FilterMatchMode } from "@primevue/core/api";
