@@ -1,9 +1,15 @@
 <template>
-  <div>
+  <div class="p-5">
     <div class="card w-full">
-      <Toolbar class="mb-1">
+       
+      <Toolbar class="mb-3" style="background-color: #111829;">
         <template #start>
-          <Button
+          <h1 class="text-2xl mr-5 pb-1 pl-1">Lançamentos</h1>
+         
+        </template>
+
+        <template #end>
+           <Button
             label="Novo"
             icon="pi pi-plus"
             severity="secondary"
@@ -16,10 +22,17 @@
             severity="secondary"
             @click="confirmDeleteSelected"
             :disabled="!selectedItems || !selectedItems.length"
-          />
-        </template>
-
-        <template #end>
+         class="mr-2"
+            />
+            <IconField class="mr-2">
+              <InputIcon>
+                <i class="pi pi-search" />
+              </InputIcon>
+              <InputText
+                v-model="filters['global'].value"
+                placeholder="Procurar..."
+              />
+            </IconField>
           <Button
             label="Exportar"
             icon="pi pi-upload"
@@ -28,7 +41,11 @@
           />
         </template>
       </Toolbar>
+
       <DataTable
+      class="custom-datatable"
+        tableStyle="background-color: red; color: white;"
+        paginatorStyle="background-color: #111829;"
         ref="dt"
         scrollable
         scrollHeight="360px"
@@ -42,28 +59,24 @@
         :rowsPerPageOptions="[5, 10, 25]"
         currentPageReportTemplate="{first} até {last} de {totalRecords} itenxs"
       >
-        <template #header>
+        <!-- <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
-            <h4 class="m-0">Lançamentos</h4>
-            <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
-              <InputText
-                v-model="filters['global'].value"
-                placeholder="Procurar..."
-              />
-            </IconField>
+           
+          
           </div>
-        </template>
+        </template> -->
 
         <Column
+          bodyClass="bg-gray-700"
+          headerClass="bg-gray-800"
           selectionMode="multiple"
-          style="width: 3rem"
+          style="width: 3rem; background-color:#111829"
           :exportable="false"
         ></Column>
 
         <Column
+          bodyClass="bg-gray-700"
+          headerClass="bg-gray-800"
           v-for="col in visibleColumns"
           :key="col.field"
           :field="col.field"
@@ -94,7 +107,8 @@
           </template> -->
         </Column>
 
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column bodyClass="bg-gray-700"
+          headerClass="bg-gray-800" :exportable="false" style="min-width: 12rem; background-color:#111829">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"
@@ -112,20 +126,22 @@
             />
           </template>
         </Column>
+
+        
       </DataTable>
     </div>
 
     <Dialog
       v-model:visible="itemDialog"
       :style="{ width: '800px', padding: '10px 15px 10px 15px' }"
-      :header="'Edição'"
+      :header="'Lançamento - ' + (flg_isEdit ? 'Editar registro' : 'Novo registro')"
       :modal="true"
     >
       <form @submit.prevent="saveItem">
         <!-- Adicione esta linha -->
         <div class="grid grid-cols-3 gap-4  ">
           <div class="mb-1">
-            <label for="item.date" class="block font-bold mb-2">
+            <label for="item.date" class="block font-bold mb-1">
               Data
             </label>
             <!-- Campo de data -->
@@ -135,7 +151,7 @@
               dateFormat="dd/mm/yy"
               :locale="brLocale"
               showIcon
-              class="md:w-40"
+              class="w-full"
               :utc="true"
             />
           </div>
@@ -153,14 +169,14 @@
               placeholder="Selecione"
               checkmark
               :highlightOnSelect="false"
-              class="md:w-40"
+              class="w-full"
             />
           </div>
           <div>
             <label for="item.doc" class="block font-bold mb-1">
               Documento
             </label>
-            <InputText id="doc" v-model="item.doc" class="md:w-50" />
+            <InputText id="doc" v-model="item.doc"  class="w-full" />
           </div>
           <div class="col-span-3 mb-1">
             <label for="item.category" class="block font-bold mb-2">
@@ -192,6 +208,7 @@
               v-model="item.description"
               rows="2"
               cols="63"
+              class="w-full"
             />
           </div>
           <div class="mb-3">
@@ -202,7 +219,8 @@
               id="item.amount"
               v-model="item.amount"
               v-bind="config"
-              class="p-inputtext p-component md:w-40"
+              style="background-color: #272729;"
+              class="p-inputtext p-component w-full"
             />
           </div>
           <div class="mb-3">
@@ -218,7 +236,7 @@
               placeholder="Selecione"
               checkmark
               :highlightOnSelect="false"
-              class="md:w-40"
+              class="md:w-40 w-full"
             />
           </div>
 
@@ -243,11 +261,11 @@
             ></AutoComplete>
           </div>
 
-          <div class="col-span-2">
+          <div class="col-span-3">
             <label :for="item.decription" class="block font-bold mb-2">
               Obs
             </label>
-            <Textarea :id="item.obs" v-model="item.obs" rows="2" cols="67" />
+            <Textarea :id="item.obs" v-model="item.obs" rows="2" cols="67" class="w-full" />
           </div>
         </div>
       </form>
@@ -324,6 +342,12 @@ import Calendar from "primevue/calendar";
 import CustomSelect from "~/components/CustomSelect.vue";
 import { parseISO, format, parse } from "date-fns";
 import { executeQuery, executeQueryRun, formatCurrency } from '@/utils/db'
+// 1. Define the Pass-Through object for the Toolbar
+const toolbarPT = {
+    root: {
+        class: 'bg-gray-900 text-white px-4 py-2 rounded-md mb-3' // Change bg-gray-800 to bg-gray-900 or any other color
+    }
+};
 
 const toast = useToast();
 const route = useRoute();
@@ -455,14 +479,14 @@ const columns = ref([
     field: "date",
     header: "Data",
     sortable: true,
-    style: { "min-width": "8rem" },
+    style: { "min-width": "8rem", "background-color": "#111829" },
     editTemplate: "calendar"
   },
   {
     field: "type",
     header: "Tipo",
     sortable: true,
-    style: { "min-width": "5rem" },
+    style: { "min-width": "5rem", "background-color": "#111829" },
     editTemplate: "Select",
     options: [
       { key: "entrada", value: "Entrada" },
@@ -473,7 +497,7 @@ const columns = ref([
     field: "category_id",
     header: "Categoria",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "10rem", "background-color": "#111829" },
     editTemplate: "Select",
     options: categoryOptions,
     hidden: true
@@ -482,7 +506,7 @@ const columns = ref([
     field: "category",
     header: "Categoria",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "10rem", "background-color": "#111829" },
     editTemplate: CustomSelect,
     options: categoryOptions,
     hide_editForm: true
@@ -491,7 +515,7 @@ const columns = ref([
     field: "description",
     header: "Descrição",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "10rem", "background-color": "#111829" },
     editTemplate: InputText,
     hidden: true
   },
@@ -499,7 +523,7 @@ const columns = ref([
     field: "related_id",
     header: "Contato",
     sortable: true,
-    style: { "min-width": "15rem" },
+    style: { "min-width": "15rem", "background-color": "#111829" },
     editTemplate: "Select",
     options: contactsOptions,
     hidden: true
@@ -508,7 +532,7 @@ const columns = ref([
     field: "contact_name",
     header: "Contato",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "10rem", "background-color": "#111829" },
     editTemplate: InputText,
     hide_editForm: true,
     hidden: true
@@ -517,7 +541,7 @@ const columns = ref([
     field: "payment_method",
     header: "Pagamento",
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "10rem", "background-color": "#111829" },
     editTemplate: "Select",
     options: payment_method_ops,
     hidden: true
@@ -526,14 +550,14 @@ const columns = ref([
     field: "doc",
     header: "Documento",
     sortable: true,
-    style: { "min-width": "5rem" },
+    style: { "min-width": "5rem", "background-color": "#111829" },
     editTemplate: InputText
   },
   {
     field: "amount",
     header: "Valor",
     sortable: true,
-    style: { "min-width": "5rem" },
+    style: { "min-width": "5rem", "background-color": "#172037" },
     editTemplate: "money"
   }
 ]);
@@ -798,8 +822,6 @@ watch(
 </script>
 
 <style scoped>
-::v-deep .last-row-highlight .p-datatable-tbody > tr:last-child {
-  background-color: #2196f3 !important;
-  color: white !important;
-}
+
+
 </style>

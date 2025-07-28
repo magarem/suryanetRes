@@ -4,20 +4,19 @@
       
       <Toolbar class="mb-1">
         <template #start>
-          
-          <Button
-            label="Nova categoria"
-            icon="pi pi-plus"
-            severity="secondary"
-            class="mr-2"
-            @click="openNew('item')"
-          />
-          <Button
-            label="Nova pasta"
+           <Button
+            label="Novo grupo"
             icon="pi pi-plus"
             severity="secondary"
             class="mr-2"
             @click="openNew('grupo')"
+          />
+          <Button
+            label="Novo item"
+            icon="pi pi-plus"
+            severity="secondary"
+            class="mr-2"
+            @click="openNew('item')"
           />
           <!-- <Button
             label="Exclusão"
@@ -307,17 +306,17 @@ const columns = ref([
     optionLabel: "value",
     optionValue: "key"
   },
-  // {
-  //   field: "node_type",
-  //   header: "Tipo",
-  //   sortable: true,
-  //   style: { "min-width": "10rem" },
-  //   editTemplate: "Select",
-  //   options: [{ key: "item", value: "Item" }, { key: "grupo", value: "Grupo" }],
-  //   optionLabel: "value",
-  //   optionValue: "key",
-  //   notNull: true
-  // },
+  {
+    field: "node_type",
+    header: "Tipo",
+    sortable: true,
+    style: { "min-width": "10rem" },
+    editTemplate: "Select",
+    options: [{ key: "item", value: "Item" }, { key: "grupo", value: "Grupo" }],
+    optionLabel: "value",
+    optionValue: "key",
+    notNull: true
+  },
   {
     field: "name",
     header: "Nome",
@@ -507,8 +506,13 @@ WHERE t1.node_type = 'grupo';
 
   return data;
 }
+const isEmpty = (obj) => Object.keys(obj).length === 0;
 
 function openNew(x) {
+  if (!selectedKey.value || isEmpty(selectedKey.value)) {
+    alert("Selecione um grupo primeiro");
+    return;}
+
   item.value = {};
   item.value.node_type = x;
   item.value.parent_id = +Object.keys(selectedKey.value)[0]
@@ -590,7 +594,7 @@ async function saveItem() {
         life: 3000
       });
 
-      // itemDialog.value = false;
+      itemDialog.value = false;
       item.value = {};
 
       // 3. Atualizar a lista localmente
