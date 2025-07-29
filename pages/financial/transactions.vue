@@ -2,133 +2,21 @@
   <div class="p-5">
     <div class="card w-full">
        
-      <Toolbar class="mb-3" style="background-color: #111829;">
-        <template #start>
-          <h1 class="text-2xl mr-5 pb-1 pl-1">Lançamentos</h1>
-         
-        </template>
-
-        <template #end>
-           <Button
-            label="Novo"
-            icon="pi pi-plus"
-            severity="secondary"
-            class="mr-2"
-            @click="openNew"
-          />
-          <Button
-            label="Excluir"
-            icon="pi pi-trash"
-            severity="secondary"
-            @click="confirmDeleteSelected"
-            :disabled="!selectedItems || !selectedItems.length"
-         class="mr-2"
-            />
-            <IconField class="mr-2">
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
-              <InputText
-                v-model="filters['global'].value"
-                placeholder="Procurar..."
-              />
-            </IconField>
-          <Button
-            label="Exportar"
-            icon="pi pi-upload"
-            severity="secondary"
-            @click="exportCSV($event)"
-          />
-        </template>
-      </Toolbar>
-
-      <DataTable
-      class="custom-datatable"
-        tableStyle="background-color: red; color: white;"
-        paginatorStyle="background-color: #111829;"
-        ref="dt"
-        scrollable
-        scrollHeight="360px"
-        v-model:selection="selectedItems"
-        :value="items"
-        dataKey="id"
-        :paginator="true"
-        :rows="10"
+      
+      <CustomDataTable
+        title="Lançamentos"
+        :items="items"
         :filters="filters"
-        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-        :rowsPerPageOptions="[5, 10, 25]"
-        currentPageReportTemplate="{first} até {last} de {totalRecords} itenxs"
-      >
-        <!-- <template #header>
-          <div class="flex flex-wrap gap-2 items-center justify-between">
-           
-          
-          </div>
-        </template> -->
-
-        <Column
-          bodyClass="bg-gray-700"
-          headerClass="bg-gray-800"
-          selectionMode="multiple"
-          style="width: 3rem; background-color:#111829"
-          :exportable="false"
-        ></Column>
-
-        <Column
-          bodyClass="bg-gray-700"
-          headerClass="bg-gray-800"
-          v-for="col in visibleColumns"
-          :key="col.field"
-          :field="col.field"
-          :header="col.header"
-          :sortable="col.sortable"
-          :style="col.style"
-        >
-          <template #body="slotProps">
-            <span v-if="col.editTemplate === 'money'">
-              {{ formatCurrency(slotProps.data[col.field]) }}
-            </span>
-            <span v-else-if="col.editTemplate === 'calendar'">
-              {{ formatDateBR(slotProps.data[col.field]) }}
-            </span>
-            <span v-else>
-              <!-- {{ formatValue(slotProps.data[col.field]) }} -->
-              {{ slotProps.data[col.field] }}
-            </span>
-          </template>
-
-          <!-- <template v-if="col.bodyTemplate" #body="slotProps">
-            <component
-              :is="col.bodyTemplate"
-              :slotProps="slotProps"
-              :formatCurrency="formatCurrency"
-              :getStatusLabel="getStatusLabel"
-            />
-          </template> -->
-        </Column>
-
-        <Column bodyClass="bg-gray-700"
-          headerClass="bg-gray-800" :exportable="false" style="min-width: 12rem; background-color:#111829">
-          <template #body="slotProps">
-            <Button
-              icon="pi pi-pencil"
-              outlined
-              rounded
-              class="mr-2"
-              @click="editItem(slotProps.data)"
-            />
-            <Button
-              icon="pi pi-trash"
-              outlined
-              rounded
-              severity="danger"
-              @click="confirmDeleteItem(slotProps.data)"
-            />
-          </template>
-        </Column>
-
-        
-      </DataTable>
+        :visibleColumns="visibleColumns"
+        v-model:selectedItems="selectedItems"
+        :formatCurrency="formatCurrency"
+        :formatDateBR="formatDateBR"
+        :editItem="editItem"
+        :openNew="openNew"
+        @deleteItem="deleteItem"
+        @deleteSelectedItems="deleteSelectedItems"
+      />
+  
     </div>
 
     <Dialog
@@ -280,59 +168,13 @@
       </template>
     </Dialog>
 
-    <Dialog
-      v-model:visible="deleteItemDialog"
-      :style="{ width: '450px' }"
-      header="Confirm"
-      :modal="true"
-    >
-      <div class="flex items-center gap-4">
-        <i class="pi pi-exclamation-triangle !text-3xl" />
-        <span v-if="item"
-          >Excluir item <b>{{ item.name }}</b
-          >?</span
-        >
-      </div>
-      <template #footer>
-        <Button
-          label="No"
-          icon="pi pi-times"
-          text
-          @click="deleteItemDialog = false"
-        />
-        <Button label="Yes" icon="pi pi-check" @click="deleteItem" />
-      </template>
-    </Dialog>
-
-    <Dialog
-      v-model:visible="deleteItemsDialog"
-      :style="{ width: '450px' }"
-      header="Confirm"
-      :modal="true"
-    >
-      <div class="flex items-center gap-4">
-        <i class="pi pi-exclamation-triangle !text-3xl" />
-        <span v-if="item">Excluir itens selecionados?</span>
-      </div>
-      <template #footer>
-        <Button
-          label="No"
-          icon="pi pi-times"
-          text
-          @click="deleteItemsDialog = false"
-        />
-        <Button
-          label="Yes"
-          icon="pi pi-check"
-          text
-          @click="deleteSelectedItems"
-        />
-      </template>
-    </Dialog>
+   
   </div>
 </template>
 
 <script setup>
+import CustomDataTable from '~/components/CustomDataTable.vue'
+
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
@@ -342,12 +184,6 @@ import Calendar from "primevue/calendar";
 import CustomSelect from "~/components/CustomSelect.vue";
 import { parseISO, format, parse } from "date-fns";
 import { executeQuery, executeQueryRun, formatCurrency } from '@/utils/db'
-// 1. Define the Pass-Through object for the Toolbar
-const toolbarPT = {
-    root: {
-        class: 'bg-gray-900 text-white px-4 py-2 rounded-md mb-3' // Change bg-gray-800 to bg-gray-900 or any other color
-    }
-};
 
 const toast = useToast();
 const route = useRoute();
@@ -376,6 +212,10 @@ const contactsOptions = ref([]);
 
 const { user, clear: clearSession } = useUserSession()
 
+const _selectedItems = items => {
+  alert(items)
+  selectedItems.value = items;
+};
 const searchItems = event => {
   setTimeout(() => {
     if (!event.query.trim().length) {
@@ -568,7 +408,7 @@ const visibleColumns = computed(() => {
   return columns.value.filter(col => !col.hidden);
 });
 
-const fetchDados = async newVal => {
+const fetchData = async newVal => {
 
   //Get lançamentos
   const data = await executeQuery(
@@ -749,7 +589,7 @@ async function saveItem() {
       flg_isEdit.value = false;
       itemDialog.value = false;
     }
-    await fetchDados(aux_type);
+    await fetchData(aux_type);
   }
 }
 
@@ -772,11 +612,11 @@ function confirmDeleteItem(row) {
   deleteItemDialog.value = true;
 }
 
-async function deleteItem() {
+async function deleteItem(item) {
   await executeQueryRun(
-    `DELETE FROM financial_transactions WHERE id = ${item.value.id}`
+    `DELETE FROM financial_transactions WHERE id = ${item.id}`
   );
-  fetchDados(op.value);
+  fetchData(op.value);
   deleteItemDialog.value = false;
   item.value = {};
   toast.add({ severity: "success", summary: "Removido", life: 3000 });
@@ -807,7 +647,7 @@ async function deleteSelectedItems() {
 }
 
 onMounted(async () => {
-  await fetchDados(op.value);
+  await fetchData(op.value);
 });
 
 
@@ -816,12 +656,14 @@ watch(
   newVal => {
     // alert(items.value.type)
     flag_categorias_select_active.value = true;
-    fetchDados(newVal);
+    fetchData(newVal);
   }
 );
 </script>
 
-<style scoped>
-
+<style>
+.p-paginator {
+  background: initial !important;
+}
 
 </style>

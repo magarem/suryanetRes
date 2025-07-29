@@ -1,10 +1,15 @@
 <template>
-  <div>
+  <div class=" w-full p-5">
     <div class="card">
       
-      <Toolbar class="mb-1">
-        <template #start>
-           <Button
+
+ <Toolbar class="mb-3" style="background-color: #111829;">
+    <template #start>
+      <h1 class="text-2xl mr-5 pb-1 pl-1">Categorias</h1>
+    </template>
+
+    <template #end>
+       <Button
             label="Novo grupo"
             icon="pi pi-plus"
             severity="secondary"
@@ -18,26 +23,27 @@
             class="mr-2"
             @click="openNew('item')"
           />
-          <!-- <Button
-            label="Exclusão"
-            icon="pi pi-trash"
-            severity="secondary"
-            @click="confirmDeleteSelected"
-            :disabled="!selectedItems || !selectedItems.length"
-          /> -->
-        </template>
-
-        <template #end>
-          <Button
-            label="Export"
-            icon="pi pi-upload"
-            severity="secondary"
-            @click="exportCSV($event)"
-          />
-        </template>
-      </Toolbar>
+      <IconField class="mr-2">
+        <InputIcon>
+          <i class="pi pi-search" />
+        </InputIcon>
+        <InputText
+          v-model="filters['global']"
+          placeholder="Procurar..."
+        />
+      </IconField>
+      <Button
+        label="Exportar"
+        icon="pi pi-upload"
+        severity="secondary"
+        @click="exportCSV($event)"
+      />
+    </template>
+  </Toolbar>
 
       <TreeTable
+        :filters="filters"
+        filterMode="lenient"
         v-model:selectionKeys="selectedKey" 
         :value="categoryTree"
         tableStyle="min-width: 50rem"
@@ -46,38 +52,23 @@
         scrollable
         scrollHeight="360px"
       >
-        <template #header>
-          <div class="flex flex-wrap gap-2 items-center justify-between">
-            <h4 class="m-0">Financeiro - Categorias</h4>
-            <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
-              <InputText
-                v-model="filters['global'].value"
-                placeholder="Procurar..."
-              />
-            </IconField>
-          </div>
-        </template>
-
         <Column
           selectionMode="multiple"
-          style="width: 3rem"
+          style="width: 3rem; background-color: #111829;"
           :exportable="false"
         ></Column>
 
-        <Column sortable field="name" header="Nome" expander style="width: 25%"></Column>
-        <Column sortable field="type" header="Entrada/Saída" style="width: 20%"></Column>
-        <Column sortable field="node_type" header="Tipo" style="width: 15%"></Column>
+        <Column sortable field="name" header="Nome" expander style="width: 25%; background-color: #111829;"></Column>
+        <Column sortable field="type" header="Entrada/Saída" style="width: 20%; background-color: #111829;"></Column>
+        <Column sortable field="node_type" header="Tipo" style="width: 15%; background-color: #111829;"></Column>
         <Column
           sortable
           field="description"
           header="Discrição"
-          style="width: 50%"
+          style="width: 50%; background-color: #111829;"
         ></Column>
 
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column :exportable="false" style="min-width: 12rem; background-color: #111829;">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"
@@ -248,9 +239,7 @@ const categoryTree = ref([]);
 const selectedItems = ref([]);
 const select_options = ref([]);
 const original_select_options = ref([]);
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-});
+const filters = ref({});
 const submitted = ref(false);
 
 const route = useRoute();
@@ -520,7 +509,10 @@ function openNew(x) {
   if (!item.value.key){
       const a = findNodeByKey(categoryTree.value, +Object.keys(selectedKey.value)[0])
        item.value.type = a?.data.type
-
+       if (a?.data.node_type != "grupo") {
+          alert("Selecione um grupo primeiro");
+          return;
+       }
   }
   
   // alert(a.data.type)

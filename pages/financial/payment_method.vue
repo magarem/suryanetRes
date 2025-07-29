@@ -1,100 +1,21 @@
 <template>
   <div>
-    <div class="card">
-      <Toolbar class="mb-1">
-        <template #start>
-          <Button
-            label="Novo"
-            icon="pi pi-plus"
-            severity="secondary"
-            class="mr-2"
-            @click="openNew"
-          />
-          <Button
-            label="Excluir"
-            icon="pi pi-trash"
-            severity="secondary"
-            @click="confirmDeleteSelected"
-            :disabled="!selectedItems || !selectedItems.length"
-          />
-        </template>
-
-        <template #end>
-          <Button
-            label="Exportar"
-            icon="pi pi-upload"
-            severity="secondary"
-            @click="exportCSV($event)"
-          />
-        </template>
-      </Toolbar>
-      <DataTable
-        scrollable
-        scrollHeight="360px"
-        ref="dt"
-        v-model:selection="selectedItems"
-        :value="items"
-        dataKey="id"
-        :paginator="true"
-        :rows="10"
+   <div class="card w-full p-5">
+      
+      <CustomDataTable
+        title="Métodos de pagamento"
+        :items="items"
         :filters="filters"
-        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-        :rowsPerPageOptions="[5, 10, 25]"
-        currentPageReportTemplate="{first} até {last} de {totalRecords} itenxs"
-      >
-        <template #header>
-          <div class="flex flex-wrap gap-2 items-center justify-between">
-            <h4 class="m-0">Usuários</h4>
-            <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
-              <InputText
-                v-model="filters['global'].value"
-                placeholder="Procurar..."
-              />
-            </IconField>
-          </div>
-        </template>
-
-        <Column
-          selectionMode="multiple"
-          style="width: 3rem"
-          :exportable="false"
-        ></Column>
-
-        <Column
-          v-for="col in visibleColumns"
-          :key="col.field"
-          :field="col.field"
-          :header="col.header"
-          :sortable="col.sortable"
-          :style="col.style"
-        >
-          <template #body="slotProps">
-            {{ slotProps.data[col.field] }}
-          </template>
-        </Column>
-
-        <Column :exportable="false" style="min-width: 12rem">
-          <template #body="slotProps">
-            <Button
-              icon="pi pi-pencil"
-              outlined
-              rounded
-              class="mr-2"
-              @click="editItem(slotProps.data)"
-            />
-            <Button
-              icon="pi pi-trash"
-              outlined
-              rounded
-              severity="danger"
-              @click="confirmDeleteItem(slotProps.data)"
-            />
-          </template>
-        </Column>
-      </DataTable>
+        :visibleColumns="visibleColumns"
+        v-model:selectedItems="selectedItems"
+        :formatCurrency="formatCurrency"
+        :formatDateBR="formatDateBR"
+        :editItem="editItem"
+        :openNew="openNew"
+        @deleteItem="deleteItem"
+        @deleteSelectedItems="deleteSelectedItems"
+      />
+  
     </div>
 
     <Dialog
@@ -131,55 +52,6 @@
       </template>
     </Dialog>
 
-    <Dialog
-      v-model:visible="deleteItemDialog"
-      :style="{ width: '450px' }"
-      header="Confirm"
-      :modal="true"
-    >
-      <div class="flex items-center gap-4">
-        <i class="pi pi-exclamation-triangle !text-3xl" />
-        <span v-if="item"
-          >Excluir item <b>{{ item.name }}</b
-          >?</span
-        >
-      </div>
-      <template #footer>
-        <Button
-          label="No"
-          icon="pi pi-times"
-          text
-          @click="deleteItemDialog = false"
-        />
-        <Button label="Yes" icon="pi pi-check" @click="deleteItem" />
-      </template>
-    </Dialog>
-
-    <Dialog
-      v-model:visible="deleteItemsDialog"
-      :style="{ width: '450px' }"
-      header="Confirm"
-      :modal="true"
-    >
-      <div class="flex items-center gap-4">
-        <i class="pi pi-exclamation-triangle !text-3xl" />
-        <span v-if="item">Excluir itens selecionados?</span>
-      </div>
-      <template #footer>
-        <Button
-          label="No"
-          icon="pi pi-times"
-          text
-          @click="deleteItemsDialog = false"
-        />
-        <Button
-          label="Yes"
-          icon="pi pi-check"
-          text
-          @click="deleteSelectedItems"
-        />
-      </template>
-    </Dialog>
   </div>
 </template>
 
@@ -213,14 +85,14 @@ const columns = ref([
     field: "name",
     header: "Nome",
     sortable: true,
-    style: { "min-width": "16rem" },
+    style: { "min-width": "16rem", "background-color": "#111829" },
     editTemplate: InputText
   },
   {
     field: "description",
     header: "Descrição",
     sortable: true,
-    style: { "min-width": "16rem" },
+    style: { "min-width": "16rem", "background-color": "#111829" },
     editTemplate: InputText
   }
 ]);
@@ -229,8 +101,6 @@ onMounted(async () => {
   const data = await fetchData();
   items.value = data;
 });
-
-
 
 
 async function fetchData() {
@@ -348,62 +218,17 @@ function confirmDeleteItem(selectedItem) {
   deleteItemDialog.value = true;
 }
 
-async function deleteItem(regs_to_delete) {
-  console.log(regs_to_delete)
-  let flg_condition = ""
-  try {
-
-    if (Array.isArray(regs_to_delete)) {
-      const aux_regs_to_delete = regs_to_delete.join()
-      console.log(aux_regs_to_delete)
-       flg_condition = `id in (${aux_regs_to_delete})`
-    } else {
-       flg_condition = `id = ${item.value.id}`
-    }
-
-    const response = await $fetch(`/api/delete`, {
-      method: "POST",
-      body: {
-        table: "financial_payment_methods", // Substitua pelo nome da sua tabela
-        condition: flg_condition
-      }
-    });
-
-    if (response && response.message) {
-      // Excluiu com sucesso no banco de dados
-      // Se necessário, atualize a lista localmente ou busque os dados novamente
-      // items.value = items.value.filter((val) => val.id !== item.value.id); //Remova esta linha se voce for buscar os dados novamente.
-      
-      // Atualize a lista localmente
-      items.value = items.value.filter(val => val.id !== item.value.id);
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: response.message,
-        life: 3000
-      });
-    } else {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: "Failed to delete item",
-        life: 3000
-      });
-    }
-
-    deleteItemDialog.value = false;
-    item.value = {};
-  } catch (error) {
-    console.error("Error deleting item:", error);
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: "An error occurred while deleting the item.",
-      life: 3000
-    });
-  }
+async function deleteItem(item) {
+  await executeQueryRun(
+    `DELETE FROM financial_payment_methods WHERE id = ${item.id}`
+  );
+  const data = await fetchData();
+  items.value = data;
+  deleteItemDialog.value = false;
+  item.value = {};
+  toast.add({ severity: "success", summary: "Removido", life: 3000 });
 }
+
 
 function findIndexById(id) {
   return items.value.findIndex(val => val.id === id);
