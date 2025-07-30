@@ -1,46 +1,43 @@
 <template>
   <div class=" w-full p-5">
     <div class="card">
-      
+      <Toolbar class="mb-3" style="background-color: #111829;">
+          <template #start>
+            <h1 class="text-2xl mr-5 pb-1 pl-1">Categorias</h1>
+          </template>
 
- <Toolbar class="mb-3" style="background-color: #111829;">
-    <template #start>
-      <h1 class="text-2xl mr-5 pb-1 pl-1">Categorias</h1>
-    </template>
-
-    <template #end>
-       <Button
-            label="Novo grupo"
-            icon="pi pi-plus"
-            severity="secondary"
-            class="mr-2"
-            @click="openNew('grupo')"
-          />
-          <Button
-            label="Novo item"
-            icon="pi pi-plus"
-            severity="secondary"
-            class="mr-2"
-            @click="openNew('item')"
-          />
-      <IconField class="mr-2">
-        <InputIcon>
-          <i class="pi pi-search" />
-        </InputIcon>
-        <InputText
-          v-model="filters['global']"
-          placeholder="Procurar..."
-        />
-      </IconField>
-      <Button
-        label="Exportar"
-        icon="pi pi-upload"
-        severity="secondary"
-        @click="exportCSV($event)"
-      />
-    </template>
-  </Toolbar>
-
+          <template #end>
+            <Button
+                  label="Novo grupo"
+                  icon="pi pi-plus"
+                  severity="secondary"
+                  class="mr-2"
+                  @click="openNew('grupo')"
+                />
+                <Button
+                  label="Novo item"
+                  icon="pi pi-plus"
+                  severity="secondary"
+                  class="mr-2"
+                  @click="openNew('item')"
+                />
+            <IconField class="mr-2">
+              <InputIcon>
+                <i class="pi pi-search" />
+              </InputIcon>
+              <InputText
+                v-model="filters['global']"
+                placeholder="Procurar..."
+              />
+            </IconField>
+            <Button
+              label="Exportar"
+              icon="pi pi-upload"
+              severity="secondary"
+              @click="exportCSV($event)"
+            />
+          </template>
+      </Toolbar>
       <TreeTable
         :filters="filters"
         filterMode="lenient"
@@ -51,14 +48,14 @@
         dataKey="key"
         scrollable
         scrollHeight="360px"
-      >
+        >
         <Column
           selectionMode="multiple"
           style="width: 3rem; background-color: #111829;"
           :exportable="false"
         ></Column>
 
-        <Column sortable field="name" header="Nome" expander style="width: 25%; background-color: #111829;"></Column>
+        <Column sortable field="name" header="Nome" expander style="width: 25%; "></Column>
         <Column sortable field="type" header="Entrada/Saída" style="width: 20%; background-color: #111829;"></Column>
         <Column sortable field="node_type" header="Tipo" style="width: 15%; background-color: #111829;"></Column>
         <Column
@@ -215,16 +212,8 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useToast } from "primevue/usetoast";
-import { FilterMatchMode } from "@primevue/core/api";
 import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
-import Textarea from "primevue/textarea";
 import Select from "primevue/select";
-import RadioButton from "primevue/radiobutton";
-import Rating from "primevue/rating";
-import Tag from "primevue/tag";
-import CustomSelect from "~/components/CustomSelect.vue";
-import CustomCheckbox from "~/components/CustomCheckbox.vue";
 import { executeQuery, executeQueryRun } from "~/utils/db"; // Adjust the import path as necessary
 
 const toast = useToast();
@@ -247,9 +236,37 @@ const original_items = ref()
 const visibleColumns = computed(() => {
   return columns.value.filter(col => !col.hidden);
 });
-
+// 2. Define the Pass-Through object for the TreeTable
+const treeTablePT = {
+    // Target each row in the table's body
+    bodyRow: ({ context }) => ({
+        // 3. Apply a background class when the row is selected
+        class: [
+            { 'bg-blue-100 dark:bg-blue-900/50': context.selected },
+            'cursor-pointer', // Optional: adds a pointer cursor to all rows
+        ],
+    }),
+};
 const selectedKey = ref();
 const metaKey = ref(true)
+
+const treePT = {
+    // Target each tree node
+    treenode: {
+        // Target the content section of the node (the part you click on)
+        content: ({ props, context }) => ({
+            class: [
+                // Add your custom classes here based on the 'selected' state
+                {
+                    'bg-blue-500 text-white': context.selected, // Applied when selected
+                    'bg-transparent text-gray-700': !context.selected, // Applied when not selected
+                },
+                // Keep default PrimeVue classes for padding, etc.
+                'p-2 rounded-md transition-colors duration-200',
+            ],
+        }),
+    },
+};
 
 // Evento ao selecionar
 function onNodeSelect(newSelection) {
@@ -742,3 +759,9 @@ function formatCurrency(value) {
   return;
 }
 </script>
+<style scoped>
+ ::v-deep(.p-treetable .p-treetable-tbody > tr.p-highlight) {
+  background-color: #4a90e2 !important;
+  color: white !important;
+}
+</style>

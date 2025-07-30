@@ -1,110 +1,19 @@
 <template>
   <div>
-    <div class="card">
-      <Toolbar class="mb-1">
-        <template #start>
-          <Button
-            label="Novo"
-            icon="pi pi-plus"
-            severity="secondary"
-            class="mr-2"
-            @click="openNew"
-          />
-          <Button
-            label="Excluir"
-            icon="pi pi-trash"
-            severity="secondary"
-            @click="confirmDeleteSelected"
-            :disabled="!selectedItems || !selectedItems.length"
-          />
-        </template>
-
-        <template #end>
-          <Button
-            label="Exportar"
-            icon="pi pi-upload"
-            severity="secondary"
-            @click="exportCSV($event)"
-          />
-        </template>
-      </Toolbar>
-      <DataTable
-        ref="dt"
-        v-model:selection="selectedItems"
-        :value="items"
-        dataKey="id"
-        :paginator="true"
-        :rows="10"
+    <div class="card m-4">
+     <CustomDataTable
+        title="Páginas"
+        :items="items"
         :filters="filters"
-        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-        :rowsPerPageOptions="[5, 10, 25]"
-        currentPageReportTemplate="{first} até {last} de {totalRecords} páginas"
-      >
-        <template #header>
-          <div class="flex flex-wrap gap-2 items-center justify-between">
-            <h4 class="m-0">Páginas</h4>
-            <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
-              <InputText
-                v-model="filters['global'].value"
-                placeholder="Procurar..."
-              />
-            </IconField>
-          </div>
-        </template>
-
-        <Column
-          selectionMode="multiple"
-          style="width: 3rem"
-          :exportable="false"
-        ></Column>
-
-        <Column
-          v-for="col in visibleColumns"
-          :key="col.field"
-          :field="col.field"
-          :header="col.header"
-          :sortable="col.sortable"
-          :style="col.style"
-        >
-          <!-- <template #body="slotProps">
-            {{ slotProps.data[col.field] }}
-          </template> -->
-
-          <template v-if="col.bodyTemplate">
-            <component
-              :is="col.bodyTemplate"
-              :slotProps="slotProps"
-              :formatCurrency="formatCurrency"
-              :getStatusLabel="getStatusLabel"
-            />
-          </template>
-          <template v-else>
-            {{ slotProps.data[col.field] }}
-          </template>
-        </Column>
-
-        <Column :exportable="false" style="min-width: 12rem">
-          <template #body="slotProps">
-            <Button
-              icon="pi pi-pencil"
-              outlined
-              rounded
-              class="mr-2"
-              @click="editItem(slotProps.data)"
-            />
-            <Button
-              icon="pi pi-trash"
-              outlined
-              rounded
-              severity="danger"
-              @click="confirmDeleteItem(slotProps.data)"
-            />
-          </template>
-        </Column>
-      </DataTable>
+        :visibleColumns="visibleColumns"
+        v-model:selectedItems="selectedItems"
+        :formatCurrency="formatCurrency"
+        :formatDateBR="formatDateBR"
+        :editItem="editItem"
+        :openNew="openNew"
+        @deleteItem="deleteItem"
+        @deleteSelectedItems="deleteSelectedItems"
+      />
     </div>
 
     <Dialog
@@ -278,21 +187,21 @@ async function fetchData() {
       field: "id",
       header: "ID",
       sortable: true,
-      style: { "min-width": "8rem" }
+      style: { "min-width": "8rem", "background-color": "#111829" }
       // hidden: true
     }, // Ocultar o ID na edição
     {
       field: "page",
       header: "Página",
       sortable: true,
-      style: { "min-width": "16rem" },
+      style: { "min-width": "16rem", "background-color": "#111829" },
       editTemplate: InputText
     },
     {
       field: "roles_names", // Coluna para exibição na tabela
       header: "Roles",
       sortable: true,
-      style: { "min-width": "12rem" },
+      style: { "min-width": "12rem", "background-color": "#111829" },
       bodyTemplate: slotProps => slotProps.data.roles_names, // Exibe os nomes concatenados
       editTemplate: null // Não usar este campo para editar
     },
@@ -300,7 +209,7 @@ async function fetchData() {
       field: "roles_ids", // Coluna para edição
       header: "Roles", // Pode manter o mesmo header ou mudar para "Selecionar Roles"
       sortable: true,
-      style: { "min-width": "12rem" },
+      style: { "min-width": "12rem", "background-color": "#111829" },
       editTemplate: CustomCheckbox, // Usar o CustomCheckbox para editar
       options: data_roles.value, // Passar as opções para o CustomCheckbox
       hidden: true // Ocultar esta coluna na tabela (opcional, pode remover se não quiser)
@@ -475,47 +384,14 @@ function confirmDeleteItem(selectedItem) {
   deleteItemDialog.value = true;
 }
 
-async function deleteItem() {
-  try {
-    const response = await $fetch(`/api/delete`, {
-      method: "POST",
-      body: {
-        table: "pages",
-        condition: `id = ${item.value.id}`
-      }
-    });
-
-    if (response && response.message) {
-      // Atualize a lista localmente
-      items.value = items.value.filter(val => val.id !== item.value.id);
-
-      toast.add({
-        severity: "success",
-        summary: "Sucesso",
-        detail: response.message,
-        life: 3000
-      });
-    } else {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: "Falha ao excluir a página.",
-        life: 3000
-      });
-    }
-
-    deleteItemDialog.value = false;
-    item.value = {};
-    fetchData();
-  } catch (error) {
-    console.error("Erro ao excluir a página:", error);
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: "Erro ao excluir a página.",
-      life: 3000
-    });
-  }
+async function deleteItem(item) {
+  await executeQueryRun(
+    `DELETE FROM pages WHERE id = ${item.id}`
+  );
+  await fetchData();
+  deleteItemDialog.value = false;
+  item.value = {};
+  toast.add({ severity: "success", summary: "Removido", life: 3000 });
 }
 
 function findIndexById(id) {

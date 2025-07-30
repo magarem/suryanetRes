@@ -1,109 +1,19 @@
 <template>
   <!-- <div class="container mx-auto"> -->
-    <div class="card w-full">
-      <Toolbar class="mb-1">
-        <template #start>
-          <Button
-            label="Novo"
-            icon="pi pi-plus"
-            severity="secondary"
-            class="mr-2"
-            @click="openNew"
-          />
-          <Button
-            label="Excluir"
-            icon="pi pi-trash"
-            severity="secondary"
-            @click="confirmDeleteSelected"
-            :disabled="!selectedItems || !selectedItems.length"
-          />
-        </template>
-
-        <template #end>
-          <Button
-            label="Exportar CSV"
-            icon="pi pi-upload"
-            severity="secondary"
-            @click="exportCSV($event)"
-          />
-        </template>
-      </Toolbar>
-      <DataTable
-       :pt="myTableStyles"  tableStyle="min-width: 50rem"
-        ref="dt"
-        v-model:selection="selectedItems"
-        :value="items"
-        dataKey="id"
-        :paginator="true"
-        :rows="10"
+    <div class="card w-full p-4">
+      <CustomDataTable
+        title="Usuários"
+        :items="items"
         :filters="filters"
-        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-        :rowsPerPageOptions="[5, 10, 25]"
-        currentPageReportTemplate="{first} até {last} de {totalRecords} itenxs"
-      >
-        <template #header>
-          <div class="flex flex-wrap gap-2 items-center justify-between">
-            <h4 class="m-0">Usuários</h4>
-            <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
-              <InputText
-                v-model="filters['global'].value"
-                placeholder="Procurar..."
-              />
-            </IconField>
-          </div>
-        </template>
-
-        <Column
-          selectionMode="multiple"
-          style="width: 3rem"
-          :exportable="false"
-        ></Column>
-
-        <Column
-          v-for="col in visibleColumns"
-          :key="col.field"
-          :field="col.field"
-          :header="col.header"
-          :sortable="col.sortable"
-          :style="col.style"
-        >
-          <template #body="slotProps">
-            <!-- {{ formatValue(slotProps.data[col.field]) }} -->
-            {{ slotProps.data[col.field] }}
-          </template>
-
-          <!-- <template v-if="col.bodyTemplate" #body="slotProps">
-            <component
-              :is="col.bodyTemplate"
-              :slotProps="slotProps"
-              :formatCurrency="formatCurrency"
-              :getStatusLabel="getStatusLabel"
-            />
-          </template> -->
-        </Column>
-
-        <Column frozen :exportable="false" style="min-width: 12rem">
-          <template #body="slotProps">
-            <Button
-              icon="pi pi-pencil"
-              outlined
-              rounded
-              class="mr-2"
-              @click="editItem(slotProps.data)"
-            />
-            <Button
-              icon="pi pi-trash"
-              outlined
-              rounded
-              severity="danger"
-              @click="confirmDeleteItem(slotProps.data)"
-            />
-          </template>
-        </Column>
-      </DataTable>
+        :visibleColumns="visibleColumns"
+        v-model:selectedItems="selectedItems"
+        :formatCurrency="formatCurrency"
+        :formatDateBR="formatDateBR"
+        :editItem="editItem"
+        :openNew="openNew"
+        @deleteItem="deleteItem"
+        @deleteSelectedItems="deleteSelectedItems"
+      />
     </div>
 
     <Dialog
@@ -263,35 +173,35 @@ const columns = ref([
     field: "username",
     header: "Username",
     sortable: true,
-    style: { "min-width": "7rem" },
+    style: { "min-width": "7rem", "background-color": "#111829" },
     editTemplate: InputText
   },
    {
     field: "name",
     header: "Nome",
     sortable: true,
-    style: { "min-width": "7rem" },
+    style: { "min-width": "7rem" , "background-color": "#111829"},
     editTemplate: InputText
   },
   {
     field: "email",
     header: "Email",
     sortable: true,
-    style: { "min-width": "7rem" },
+    style: { "min-width": "7rem" , "background-color": "#111829"},
     editTemplate: InputText
   },
   {
     field: "phone",
     header: "Telefone",
     sortable: true,
-    style: { "min-width": "7rem" },
+    style: { "min-width": "7rem", "background-color": "#111829" },
     editTemplate: InputText
   },
   {
     field: "password",
     header: "Senha",
     sortable: true,
-    style: { "min-width": "5rem" },
+    style: { "min-width": "5rem", "background-color": "#111829" },
     editTemplate: InputText,
     hidden: true
   },
@@ -299,7 +209,7 @@ const columns = ref([
     field: "roles_names", // Coluna para exibição na tabela
     header: "Roles",
     sortable: true,
-    style: { "min-width": "5rem" },
+    style: { "min-width": "5rem", "background-color": "#111829" },
     bodyTemplate: (slotProps) => slotProps.data.roles_names, // Exibe os nomes concatenados
     editTemplate: null, // Não usar este campo para editar
     hidden: true,
@@ -308,7 +218,7 @@ const columns = ref([
     field: "roles_ids", // Coluna para edição
     header: "Roles", // Pode manter o mesmo header ou mudar para "Selecionar Roles"
     sortable: true,
-    style: { "min-width": "10rem" },
+    style: { "min-width": "10rem", "background-color": "#111829" },
     editTemplate: CustomCheckbox, // Usar o CustomCheckbox para editar
     options: data_roles.value, // Passar as opções para o CustomCheckbox
     hidden: true, // Ocultar esta coluna na tabela (opcional, pode remover se não quiser)
@@ -317,7 +227,7 @@ const columns = ref([
     field: "status",
     header: "Status",
     sortable: true,
-    style: { "min-width": "2rem" },
+    style: { "min-width": "2rem", "background-color": "#111829" },
     editTemplate: InputText
   }
 ]);
@@ -542,50 +452,15 @@ function confirmDeleteItem(selectedItem) {
   deleteItemDialog.value = true;
 }
 
-async function deleteItem() {
-  try {
-    const response = await $fetch(`/api/delete`, {
-      method: "POST",
-      body: {
-        table: "users", // Substitua pelo nome da sua tabela
-        condition: `id = ${item.value.id}`
-      }
-    });
-
-    if (response && response.message) {
-      // Excluiu com sucesso no banco de dados
-      // Se necessário, atualize a lista localmente ou busque os dados novamente
-      // items.value = items.value.filter((val) => val.id !== item.value.id); //Remova esta linha se voce for buscar os dados novamente.
-      
-      // Atualize a lista localmente
-      items.value = items.value.filter(val => val.id !== item.value.id);
-
-      toast.add({
-        severity: "success",
-        summary: "Successful",
-        detail: response.message,
-        life: 3000
-      });
-    } else {
-      toast.add({
-        severity: "error",
-        summary: "Error",
-        detail: "Failed to delete item",
-        life: 3000
-      });
-    }
-
-    deleteItemDialog.value = false;
-    item.value = {};
-  } catch (error) {
-    console.error("Error deleting item:", error);
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: "An error occurred while deleting the item.",
-      life: 3000
-    });
-  }
+async function deleteItem(item) {
+  await executeQueryRun(
+    `DELETE FROM users WHERE id = ${item.id}`
+  );
+  const data = await fetchData();
+  items.value = data;
+  deleteItemDialog.value = false;
+  item.value = {};
+  toast.add({ severity: "success", summary: "Removido", life: 3000 });
 }
 
 function findIndexById(id) {
@@ -614,7 +489,6 @@ function confirmDeleteSelected() {
 async function deleteSelectedItems() {
   items.value = items.value.filter(val => !selectedItems.value.includes(val));
   deleteItemsDialog.value = false;
-  alert(selectedItems.value.map(item => item.id).join(','))
 
   const response = await $fetch(`/api/delete`, {
     method: "POST",
